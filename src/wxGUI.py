@@ -23,6 +23,18 @@ def playSound(pair):
 
 class MainWindow(wx.Frame):
 	def __init__(self, parent, title):
+		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(650,600))
+		
+		self.open = wx.Button(self, label="English")
+		self.Bind(wx.EVT_BUTTON, self.OnOpen, self.open)
+		
+	def OnOpen(self, event):
+		secondWindow = TrainingWindow(None, "hello there")
+		secondWindow.Show()
+
+
+class TrainingWindow(wx.Frame):
+	def __init__(self, parent, title):
 		self.truth = None
 	
 		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(650,600))
@@ -132,6 +144,7 @@ class MainWindow(wx.Frame):
 			self.moo.Hide(), self.quack.Hide(), self.next.Hide()
 
 		# END OF BUTTONS
+		
 
 
 # provider = wx.SimpleHelpProvider()

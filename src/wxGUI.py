@@ -2,21 +2,23 @@
 
 import wx, os, random
 
-
+# dataPath = "~/git/pyphon/data/"  # This one's for you - COMMENT MINE OUT and COMMENT THIS IN when you run the code
+dataPath = "~/Desktop/software/pyphon/data/"
+# The above is a bit of a hackish solution but I can't think of another way of doing this at the moment
 
 def answerList():
-	return ["Moo", "Quack"]
+	return ["Mouse", "Mouth"]
 	
 def truth():
-	return "Moo"
+	return "Mouse"
 
-wordPairs = {0 : ["moo", "quack"], 1 : ["woof", "miao"]}
-numSounds = {"moo" : 3, "quack" : 2, "woof" : 2, "miao" : 2}
+wordPairs = {0 : ["mouth", "mouse"], 1 : ["sheep", "ship"]}
+numSounds = {"mouth" : 1, "mouse" : 1, "sheep" : 1, "ship" : 1}
 
 def playSound(pair):
 	soundName = wordPairs[pair][random.randint(0,1)]
 	filename =  soundName + str(random.randint(1,numSounds[soundName]))
-	wx.Sound(os.path.expanduser("~/Desktop/software/sounds/" + filename + ".wav")).Play()
+	wx.Sound(os.path.expanduser("~/Desktop/software/pyphon/data/" + filename + ".wav")).Play()
 
 
 
@@ -59,8 +61,8 @@ class MainWindow(wx.Frame):
 		self.wordBox.SetFont(font)
 		self.feedback = wx.StaticText(self.panel, label="***")
 
-		self.moo = wx.Button(self, label="Moo")
-		self.quack = wx.Button(self, label="Quack")
+		self.moo = wx.Button(self, label="Mouse")
+		self.quack = wx.Button(self, label="Mouth")
 		self.next = wx.Button(self, label="Next")
 		self.start = wx.Button(self, label="Start")
 		self.Bind(wx.EVT_BUTTON, self.OnMoo, self.moo)
@@ -91,19 +93,22 @@ class MainWindow(wx.Frame):
 	def OnExit(self, event):
 		self.Close(True)
 		
+		# Below - BUTTONS!
+		# This is where the action happens
+		
 	def OnMoo(self, event):
-		userAnswer = answerList()[0]
+		userAnswer = answerList()[0]  # a stand-in. This needs to actually reflect the user's answer
 		if userAnswer == truth():
-			self.feedback.SetForegroundColour((0,255,0))
+			self.feedback.SetForegroundColour((0,255,0))    # i.e. green
 		else:
-			self.feedback.SetForegroundColour((255,0,0))
+			self.feedback.SetForegroundColour((255,0,0))    # i.e. red
 		self.feedback.Label = truth()
 		self.moo.Hide(), self.quack.Hide(), self.next.Show()
 		
 	def OnQuack(self, event): # pretty much a repeat of OnMoo
 		userAnswer = answerList()[1]
 		if userAnswer == truth():
-			self.feedback.SetForegroundColour((0,255,0))
+			self.feedback.SetForegroundColour((0,255,0)) 
 		else:
 			self.feedback.SetForegroundColour((255,0,0))
 		self.feedback.Label = truth()
@@ -122,6 +127,9 @@ class MainWindow(wx.Frame):
 		elif self.start.Label == "Stop":
 			self.start.Label == "Start"
 			self.moo.Hide(), self.quack.Hide(), self.next.Hide()
+
+		# END OF BUTTONS
+
 
 # provider = wx.SimpleHelpProvider()
 # wx.HelpProvider_Set(provider)

@@ -9,8 +9,6 @@ dataPath = "~/Desktop/software/pyphon/data/"
 def answerList():
 	return ["Mouse", "Mouth"]
 	
-def truth():
-	return "Mouse"
 
 wordPairs = {0 : ["mouth", "mouse"], 1 : ["sheep", "ship"]}
 numSounds = {"mouth" : 1, "mouse" : 1, "sheep" : 1, "ship" : 1}
@@ -19,11 +17,14 @@ def playSound(pair):
 	soundName = wordPairs[pair][random.randint(0,1)]
 	filename =  soundName + str(random.randint(1,numSounds[soundName]))
 	wx.Sound(os.path.expanduser("~/Desktop/software/pyphon/data/" + filename + ".wav")).Play()
+	return soundName
 
 
 
 class MainWindow(wx.Frame):
 	def __init__(self, parent, title):
+		self.truth = None
+	
 		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(650,600))
 		self.CreateStatusBar()
 		
@@ -98,32 +99,34 @@ class MainWindow(wx.Frame):
 		
 	def OnMoo(self, event):
 		userAnswer = answerList()[0]  # a stand-in. This needs to actually reflect the user's answer
-		if userAnswer == truth():
+		print self.truth
+		if userAnswer == self.truth:
 			self.feedback.SetForegroundColour((0,255,0))    # i.e. green
 		else:
 			self.feedback.SetForegroundColour((255,0,0))    # i.e. red
-		self.feedback.Label = truth()
+		self.feedback.Label = self.truth
 		self.moo.Hide(), self.quack.Hide(), self.next.Show()
 		
 	def OnQuack(self, event): # pretty much a repeat of OnMoo
 		userAnswer = answerList()[1]
-		if userAnswer == truth():
+		print self.truth
+		if userAnswer == self.truth:
 			self.feedback.SetForegroundColour((0,255,0)) 
 		else:
 			self.feedback.SetForegroundColour((255,0,0))
-		self.feedback.Label = truth()
+		self.feedback.Label = self.truth
 		self.moo.Hide(), self.quack.Hide(), self.next.Show()
 		
 	def OnNext(self, event):
 		self.moo.Show(), self.quack.Show()
 		self.feedback.Label = ""
-		playSound(0)
+		self.truth = playSound(0).title()
 		
 	def OnStart(self, event):
 		if self.start.Label == "Start":
 			self.start.Label = "Stop"
 			self.moo.Show(), self.quack.Show()
-			playSound(0)
+			self.truth = playSound(0).title()
 		elif self.start.Label == "Stop":
 			self.start.Label == "Start"
 			self.moo.Hide(), self.quack.Hide(), self.next.Hide()

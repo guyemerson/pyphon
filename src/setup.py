@@ -1,6 +1,8 @@
-import sqlite3, winsound
+import sqlite3, winsound, os
 
-datafile = '..\\data\\data.db'
+cwd = os.getcwd()
+datadir = os.path.join(os.path.split(cwd)[0], 'data')
+datafile = os.path.join(datadir, 'data.db')
 
 with open(datafile,'wb') as f:
 	pass  # Wipe file before starting
@@ -18,10 +20,10 @@ with sqlite3.connect(datafile) as data:
 	
 	for pair in words:
 		a,b = pair
-		cur.execute("INSERT INTO samples VALUES (?,?,?,?,?,?)", ('..\\data\\{}.wav'.format(a), speaker, language, contrast, '|'.join(pair), a))
-		cur.execute("INSERT INTO samples VALUES (?,?,?,?,?,?)", ('..\\data\\{}.wav'.format(b), speaker, language, contrast, '|'.join(pair), b))
+		cur.execute("INSERT INTO samples VALUES (?,?,?,?,?,?)", (datadir + '/' + a + '1.wav', speaker, language, contrast, '|'.join(pair), a))
+		cur.execute("INSERT INTO samples VALUES (?,?,?,?,?,?)", (datadir + '/' + b + '1.wav', speaker, language, contrast, '|'.join(pair), b))
 	
 	cur.execute("SELECT * FROM samples")
-	for x in cur:  #fetchall()
+	for x in cur:
 		print(x)
 		winsound.PlaySound(x[0], winsound.SND_FILENAME)

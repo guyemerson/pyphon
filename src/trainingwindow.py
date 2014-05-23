@@ -2,11 +2,8 @@
 
 import wx, random, os
 
-# dataPath = "~/git/pyphon/data/"  # This one's for you - COMMENT MINE OUT and COMMENT THIS IN when you run the code
-dataPath = "~/Desktop/software/pyphon/data/"
-#dataPath = os.getcwd() + "/data/"
-# The above is a bit of a hackish solution but I can't think of another way of doing this at the moment
-# dataPath = "..\\data\\" # -- doesn't work
+srcDir = os.getcwd()
+dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
 
 ### All this stuff...
 def answerList():
@@ -17,8 +14,8 @@ numSounds = {"mouth" : 1, "mouse" : 1, "sheep" : 1, "ship" : 1}
 
 def playSound(pair):
 	soundName = wordPairs[pair][random.randint(0,1)]
-	filename =  soundName + str(random.randint(1,numSounds[soundName]))
-	ultimate = dataPath + filename + ".wav"
+	filename =  soundName + str(random.randint(1,numSounds[soundName])) + ".wav"
+	ultimate = os.path.join(dataDir, filename)
 	print ultimate
 	wx.Sound(os.path.expanduser(ultimate)).Play()
 	return soundName

@@ -2,11 +2,8 @@
 
 import wx, os, sys
 
-bigstasPath = "/Users/stanislawpstrokonski/Desktop/software/pyphon/src"
-
-if os.path.isdir(bigstasPath):
-	if bigstasPath not in sys.path:
-		sys.path.append(bigstasPath)
+srcDir = os.getcwd()
+dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
 
 import trainingwindow  #, filewindow (to follow)
 

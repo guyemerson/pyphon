@@ -54,11 +54,11 @@ class TrainingWindow(wx.Frame):
 		
 		# PANEL CODE (sometimes done as separate object, here one object together with frame)
 		
-		self.panel = wx.Panel(self)
+		self.panel = wx.Panel(self, size=(600,650))
 		self.panel.SetBackgroundColour('#ededed')
 
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
+		self.grid = wx.GridBagSizer(hgap=20, vgap=20)
 		
 		font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
 		font.SetPointSize(20)
@@ -67,31 +67,26 @@ class TrainingWindow(wx.Frame):
 		self.wordBox.SetFont(font)
 		self.feedback = wx.StaticText(self.panel, label="***")
 
-		self.moo = wx.Button(self, label="Mouse")
-		self.quack = wx.Button(self, label="Mouth")
-		self.next = wx.Button(self, label="Next")
-		self.start = wx.Button(self, label="Start")
+		self.moo = wx.Button(self.panel, label="Mouse")
+		self.quack = wx.Button(self.panel, label="Mouth")
+		self.next = wx.Button(self.panel, label="Next")
+		self.start = wx.Button(self.panel, label="Start")
 		self.Bind(wx.EVT_BUTTON, self.OnMoo, self.moo)
 		self.Bind(wx.EVT_BUTTON, self.OnQuack, self.quack)
 		self.Bind(wx.EVT_BUTTON, self.OnNext, self.next)
 		self.Bind(wx.EVT_BUTTON, self.OnStart, self.start)
 		#self.moo.Hide(), self.quack.Hide(), self.next.Hide()
 
-		self.grid.Add(self.wordBox, pos=(1,0), span=(1,2))
-		self.grid.Add(self.moo, pos=(2,0), span=(1,2))
-		self.grid.Add(self.quack, pos=(2,2), span=(1,2))
-		self.grid.Add(self.feedback, pos=(4,3), span=(1,1))
-		self.grid.Add(self.next, pos=(5,3), span=(1,1))
+		self.grid.Add(self.wordBox, pos=(1,0))
+		self.grid.Add(self.moo, pos=(2,0))
+		self.grid.Add(self.quack, pos=(2,2))
+		self.grid.Add(self.feedback, pos=(4,3))
+		self.grid.Add(self.next, pos=(5,3))
 		self.grid.Add(self.start, pos=(6,3))
 
-		self.mainSizer.Add(self.grid, 0, wx.ALL, 5)
+		self.mainSizer.Add(self.grid, 100, wx.ALL, 100)
 		self.panel.SetSizerAndFit(self.mainSizer)
-		
-		self.moo.Show()
-		self.quack.Show()
-		self.next.Show()
-		self.start.Show()
-		
+				
 		
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)

@@ -87,6 +87,11 @@ class TrainingWindow(wx.Frame):
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 5)
 		self.panel.SetSizerAndFit(self.mainSizer)
 		
+		self.moo.Show()
+		self.quack.Show()
+		self.next.Show()
+		self.start.Show()
+		
 		
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)

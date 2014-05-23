@@ -2,9 +2,11 @@
 
 import wx, os, sys
 
-if os.path.isdir("/Users/stanislawpstrokonski/Desktop/software/pyphon/src"):
-	if "/Users/stanislawpstrokonski/Desktop/software/pyphon/src" not in sys.path:
-		sys.path.append("/Users/stanislawpstrokonski/Desktop/software/pyphon/src")
+bigstasPath = "/Users/stanislawpstrokonski/Desktop/software/pyphon/src"
+
+if os.path.isdir(bigstasPath):
+	if bigstasPath not in sys.path:
+		sys.path.append(bigstasPath)
 
 import trainingwindow  #, filewindow (to follow)
 

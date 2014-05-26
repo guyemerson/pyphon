@@ -12,7 +12,7 @@ with sqlite3.connect(datafile) as data:
 	cur.execute('CREATE TABLE samples (file text, speaker text, language text, contrast text, options text, answer text)')
 	cur.execute('CREATE VIEW contrasts AS SELECT language, contrast FROM samples')
 	
-	language = 'eng'
+	language = 'British English'
 	contrast = 'th-s'
 	speaker = 'me'
 	

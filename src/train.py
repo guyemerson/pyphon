@@ -1,13 +1,5 @@
 import sqlite3, os, random
 
-system = os.environ['OS']
-if system == 'Windows_NT':  # We need to make sure we can play sound files on any reasonable operating system...
-	import winsound
-	def play(filename):
-		winsound.PlaySound(filename, winsound.SND_FILENAME)
-else:  # Here we would define a different function "play"
-	raise Exception(system)
-	#import musicplayer  # This might be a good choice?
 
 datafile = '..\\data\\data.db'
 with sqlite3.connect(datafile) as data:

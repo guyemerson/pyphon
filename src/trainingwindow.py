@@ -1,9 +1,10 @@
 # This module contains the TrainingWindow wx GUI object and supporting functions only.
 
-import wx, random, os
+import wx, random, os, sqlite3
 
 srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
+datafile = os.path.join(dataDir, 'data.db')
 
 ### All this stuff...
 def answerList():
@@ -24,45 +25,23 @@ def playSound(pair):
 	
 
 class TrainingWindow(wx.Frame):
-	def __init__(self, parent, title):
+	def __init__(self, parent, title, language, contrast):  # need to incorporate language and contrast
+		self.sessionStats = {"attempts" : 0, "correct" : 0} # need to develop this
 		self.truth = None
 	
-		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(650,600))
-		self.CreateStatusBar()
+		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(300,200))
+		# Would be easier if the Frame couldn't be closed using the icon in the corner. Could this be disabled?
+		self.CreateStatusBar()   # would be nice to have the status bar show the current stats for the session (like in Anki)
 		
-		filemenu = wx.Menu()
-		helpmenu = wx.Menu()
-		
-		menuHelp = helpmenu.Append(wx.ID_ANY, "&Help topics", " lalalala")
-		menuAbout = helpmenu.Append(wx.ID_ABOUT, "&About", " Information about this program")
-		# helpmenu.AppendSeparator() 
-		menuExit = filemenu.Append(wx.ID_EXIT, "E&xit", " Terminate the program")
-		
-		# lots of menu & help menu code can be added here
-		
-		menuBar = wx.MenuBar()
-		menuBar.Append(filemenu, "&File")
-		menuBar.Append(helpmenu, "&Help")
-		self.SetMenuBar(menuBar)
-		
-		self.Bind(wx.EVT_MENU, self.OnHelp, menuHelp)
-		self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
-		self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
 		
 		# PANEL CODE (sometimes done as separate object, here one object together with frame)
 		
-		self.panel = wx.Panel(self, size=(600,650))
+		self.panel = wx.Panel(self, size=(300,200))
 		self.panel.SetBackgroundColour('#ededed')
-
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-		self.grid = wx.GridBagSizer(hgap=20, vgap=20)
+		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
 		
-		font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
-		font.SetPointSize(20)
-				
-		self.wordBox = wx.StaticText(self.panel, label="a cool title")
-		self.wordBox.SetFont(font)
-		self.feedback = wx.StaticText(self.panel, label="***")
+		self.feedback = wx.StaticText(self.panel, label="")
 
 		self.moo = wx.Button(self.panel, label="Mouse")
 		self.quack = wx.Button(self.panel, label="Mouth")
@@ -72,29 +51,21 @@ class TrainingWindow(wx.Frame):
 		self.Bind(wx.EVT_BUTTON, self.OnQuack, self.quack)
 		self.Bind(wx.EVT_BUTTON, self.OnNext, self.next)
 		self.Bind(wx.EVT_BUTTON, self.OnStart, self.start)
-		#self.moo.Hide(), self.quack.Hide(), self.next.Hide()
 
-		self.grid.Add(self.wordBox, pos=(1,0))
-		self.grid.Add(self.moo, pos=(2,0))
-		self.grid.Add(self.quack, pos=(2,2))
-		self.grid.Add(self.feedback, pos=(4,3))
-		self.grid.Add(self.next, pos=(5,3))
-		self.grid.Add(self.start, pos=(6,3))
+		self.grid.Add(self.moo, pos=(1,0))
+		self.grid.Add(self.quack, pos=(1,2))
+		self.grid.Add(self.feedback, pos=(2,1))
+		self.grid.Add(self.next, pos=(3,1))
+		self.grid.Add(self.start, pos=(3,2))
 
-		self.mainSizer.Add(self.grid, 100, wx.ALL, 100)
+		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.panel.SetSizerAndFit(self.mainSizer)
-				
 		
-	def OnHelp(self, event):
-		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)
-		dlg.ShowModal()
-		dlg.Destroy()
-	def OnAbout(self, event):
-		dlg = wx.MessageDialog(self, "What's this? Another message?\nWow Stas, you are so full of surprises!", "More fun messages", wx.OK | wx.ICON_INFORMATION)
-		dlg.ShowModal()
-		dlg.Destroy()
-	def OnExit(self, event):
-		self.Close(True)
+				
+		# Need to have a way to handle what happens when TrainingWindow closes, i.e.:
+		# 1. statistics are stored
+		# 2. MainWindow should return to normal, and you should be able to open a new TrainingWindow
+		
 		
 		# Below - BUTTONS!
 		# This is where the action happens
@@ -123,6 +94,7 @@ class TrainingWindow(wx.Frame):
 		self.moo.Show(), self.quack.Show()
 		self.feedback.Label = ""
 		self.truth = playSound(0).title()
+		self.next.Hide()
 		
 	def OnStart(self, event):
 		if self.start.Label == "Start":
@@ -130,7 +102,9 @@ class TrainingWindow(wx.Frame):
 			self.moo.Show(), self.quack.Show()
 			self.truth = playSound(0).title()
 		elif self.start.Label == "Stop":
-			self.start.Label == "Start"
+			self.start.Label = "Start"
 			self.moo.Hide(), self.quack.Hide(), self.next.Hide()
+			self.feedback.Label = ""
+#			self.feedback.SetForegroundColour((0,0,0))
 
 		# END OF BUTTONS

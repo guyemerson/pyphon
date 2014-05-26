@@ -72,6 +72,7 @@ class TrainingWindow(wx.Frame):
 		
 	def OnMoo(self, event):
 		userAnswer = answerList()[0]  # a stand-in. This needs to actually reflect the user's answer
+		# can event.GetString() be used here? (apparently not)
 		print self.truth
 		if userAnswer == self.truth:
 			self.feedback.SetForegroundColour((0,255,0))    # i.e. green

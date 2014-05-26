@@ -25,6 +25,18 @@ def playSound(pair):
 	
 
 class TrainingWindow(wx.Frame):
+	'''
+	This is the frame (i.e. window) where training happens. Probably the most important frame of all.
+	
+	The frame contains:
+	- a panel object (internally coded, below) for organising and positioning widgets (buttons, text etc.)
+	- a "status bar", which is not yet used to its full potential (because I haven't figured out how to give it commands yet)
+	
+	The panel contains:
+	- The buttons and their methods
+	
+	Database hookup is yet to begin. This is a high priority for development.
+	'''
 	def __init__(self, parent, title, language, contrast):  # need to incorporate language and contrast
 		self.sessionStats = {"attempts" : 0, "correct" : 0} # need to develop this
 		self.truth = None

@@ -11,6 +11,17 @@ import trainingwindow, filewindow
 
 
 class MainWindowPanel(wx.Panel):
+	'''
+	This is the panel (i.e. container/organiser for widgets) which is used by the frame MainWindow. ("Frame" is the wx word for what we would call "window").
+	
+	The panel contains:
+	- widgets (buttons and ComboBoxes) and their methods
+	- database interaction (to fetch language and contrast options)
+	- a GridBagSizer for organising the widgets in the panel
+	- a BoxSizer as a "main sizer", in which the GridBagSizer fits
+	
+	Currently the transition from buttons to ComboBoxes is underway, and database hookup is under development. ComboBoxes may contain some errors.
+	'''
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent, size=(400,400))
 		
@@ -93,6 +104,16 @@ class MainWindowPanel(wx.Panel):
 
 
 class MainWindow(wx.Frame):
+	'''
+	This is the main frame (wx word for what we would call a "window") for the whole program.
+	The purpose of this frame is to link to training and file input, and (hopefully) to be pretty.
+	
+	The frame contains:
+	- a panel (coded above)
+	- a menu bar
+	- menu options and their methods
+	- a "status bar" (the little info strip at the bottom)
+	'''
 	def __init__(self, parent, title):
 		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,400))
 

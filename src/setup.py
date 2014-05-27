@@ -20,8 +20,8 @@ with sqlite3.connect(datafile) as data:
 	
 	for pair in words:
 		a,b = pair
-		cur.execute("INSERT INTO samples VALUES (?,?,?,?,?,?)", (datadir + '/' + a + '1.wav', speaker, language, contrast, '|'.join(pair), a))
-		cur.execute("INSERT INTO samples VALUES (?,?,?,?,?,?)", (datadir + '/' + b + '1.wav', speaker, language, contrast, '|'.join(pair), b))
+		cur.execute("INSERT INTO samples VALUES (?,?,?,?,?,?)", (os.path.join(datadir, a + '1.wav'), speaker, language, contrast, '|'.join(pair), a))
+		cur.execute("INSERT INTO samples VALUES (?,?,?,?,?,?)", (os.path.join(datadir, b + '1.wav'), speaker, language, contrast, '|'.join(pair), b))
 	
 	cur.execute("SELECT * FROM samples")
 	for x in cur:

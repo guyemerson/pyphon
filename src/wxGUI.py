@@ -31,9 +31,9 @@ class MainWindowPanel(wx.Panel):
 		# DATABASE CODE
 		
 		with sqlite3.connect(datafile) as data:
-			cur = data.cursor()
-		cur.execute("SELECT language FROM samples")
-		languages = sorted(set(cur))  # this appears to be a list with a tuple in it?
+			self.cur = data.cursor()
+		self.cur.execute("SELECT language FROM samples")
+		languages = sorted(set(self.cur))  # this appears to be a list with a tuple in it?
 		print (languages)
 		# LANGUAGES SHOULD BE NAMED THE SAME AS BUTTONS/COMBO-BOX OPTIONS for simplicity
 		languageOptions = [x[0] for x in languages] # produces a list of strings from a list of tuples - not thoroughly tested yet
@@ -68,9 +68,9 @@ class MainWindowPanel(wx.Panel):
 		if True: # this should depend on the button label
 			chosenLanguage = "British English"
 		if True: # need to have actual choice here
-			chosenContrast = "s-th"
+			chosenContrast = "th-s"
 		trainingTitle = chosenLanguage + " | " + chosenContrast
-		secondWindow = trainingwindow.TrainingWindow(None, trainingTitle, chosenLanguage, chosenContrast)
+		secondWindow = trainingwindow.TrainingWindow(None, trainingTitle, self.cur, chosenLanguage, chosenContrast)
 		secondWindow.Show()
 		secondWindow.moo.Hide(), secondWindow.quack.Hide(), secondWindow.next.Hide()
 #		self.english.Hide(), self.polish.Hide()	

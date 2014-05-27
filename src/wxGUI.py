@@ -33,38 +33,38 @@ class MainWindowPanel(wx.Panel):
 		with sqlite3.connect(datafile) as data:
 			self.cur = data.cursor()
 		self.cur.execute("SELECT language FROM samples")
-		languages = sorted(set(self.cur))  # this appears to be a list with a tuple in it?
-		print (languages)
-		# LANGUAGES SHOULD BE NAMED THE SAME AS BUTTONS/COMBO-BOX OPTIONS for simplicity
-		languageOptions = [x[0] for x in languages] # produces a list of strings from a list of tuples - not thoroughly tested yet
-		languageOptions.insert(0, "-")
-		contrastOptions = ["-"]
-		print (languageOptions)
-		self.chooseLanguage = wx.ComboBox(self, size=(95,-1), choices=languageOptions, style=wx.CB_READONLY)
-		self.chooseContrast = wx.ComboBox(self, size=(95,-1), choices=contrastOptions, style=wx.CB_READONLY)
-		self.chooseLanguage.Append("Polish")
+		self.all_languages = sorted(x[0] for x in set(self.cur))  # this appears to be a list with a tuple in it?
+		print (self.all_languages)
+		
+		# The following will be updated as options are chosen
+		self.all_contrasts = []
+		self.language = None
+		self.contrast = None
 		
 		# WIDGET CODE
 		
-		self.english = wx.Button(self, label="British English")
-		self.polish = wx.Button(self, label="Polski")
-		self.Bind(wx.EVT_BUTTON, self.OnBritish, self.english)
-		self.Bind(wx.EVT_BUTTON, self.OnBritish, self.polish)
+		self.chooseLanguage = wx.ComboBox(self, size=(95,-1), choices=["-"] + self.all_languages, style=wx.CB_READONLY)
+		self.chooseContrast = wx.ComboBox(self, size=(95,-1), choices=["-"], style=wx.CB_READONLY)
+		# The following line will be removed eventually
+		self.chooseLanguage.Append("Polish")
+		
+		self.train = wx.Button(self, label="Train!")
+		self.Bind(wx.EVT_BUTTON, self.OnTrain, self.train)
 		self.Bind(wx.EVT_COMBOBOX, self.OnChooseLanguage, self.chooseLanguage)
 		self.Bind(wx.EVT_COMBOBOX, self.OnChooseContrast, self.chooseContrast)
 		
 		# GRID CODE
 		
 		self.grid = wx.GridBagSizer(hgap=10, vgap=10)
-		self.grid.Add(self.english, pos=(0,0))
-		self.grid.Add(self.polish, pos=(1,0))
-		self.grid.Add(self.chooseLanguage, pos=(3,1))
-		self.grid.Add(self.chooseContrast, pos=(3,2))
+		self.grid.Add(self.chooseLanguage, pos=(3,0))
+		self.grid.Add(self.chooseContrast, pos=(3,1))
+		self.grid.Add(self.train, pos=(3,2))
 		
 		self.mainSizer.Add(self.grid, 20, wx.ALL, 20)
 		self.SetSizerAndFit(self.mainSizer)
 		
 	def OnBritish(self, event):
+		# This function will probably be removed
 		if True: # this should depend on the button label
 			chosenLanguage = "British English"
 		if True: # need to have actual choice here
@@ -73,33 +73,38 @@ class MainWindowPanel(wx.Panel):
 		secondWindow = trainingwindow.TrainingWindow(None, trainingTitle, self.cur, chosenLanguage, chosenContrast)
 		secondWindow.Show()
 		secondWindow.moo.Hide(), secondWindow.quack.Hide(), secondWindow.next.Hide()
-#		self.english.Hide(), self.polish.Hide()	
-
-#		font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
-#		font.SetPointSize(20)			
-#		self.waitingText = wx.StaticText(self.panel, label="A session is underway.\nPlease finish your session before starting a new one.")
-#		self.waitingText.SetFont(font)
-#		self.grid.Add(self.waitingText, pos=(3,0))  -- Doesn't seem to respond to grid placement
-
+		#self.english.Hide(), self.polish.Hide()	
+	
+		#font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
+		#font.SetPointSize(20)			
+		#self.waitingText = wx.StaticText(self.panel, label="A session is underway.\nPlease finish your session before starting a new one.")
+		#self.waitingText.SetFont(font)
+		#self.grid.Add(self.waitingText, pos=(3,0))  -- Doesn't seem to respond to grid placement
+	
+	def OnTrain(self, event):
+		# Check that the current settings are valid
+		assert self.language in self.all_languages
+		assert self.contrast in self.all_contrasts
+		# Open a new window
+		trainingTitle = self.language + " | " + self.contrast
+		self.trainingWindow = trainingwindow.TrainingWindow(None, trainingTitle, self.cur, self.language, self.contrast)
+		
+	
 	def OnChooseLanguage(self, event):
+		# Save the chosen language
 		print (event.GetString())
-		### This section is not working properly yet
-		chosenLanguage = "eng"  # need to change to chosenLanguage = event.GetString()
-		with sqlite3.connect(datafile) as data:
-			cur = data.cursor()  # this is now done for a second time. Will this produce bugs?
-		cur.execute("SELECT contrast FROM samples WHERE language = ?", (chosenLanguage,))
-		contrasts = sorted(set(cur))
-		print (contrasts)
-		contrastOptions = [x[0] for x in contrasts] # produces a list of strings from a list of tuples - not thoroughly tested yet
-		contrastOptions.insert(0, "-")
-		print (contrastOptions)
-		# This works, but the preexisting chooseContrast needs to be removed (from the grid) to allow the new one to enter the grid
-		self.chooseContrast = wx.ComboBox(self, size=(95,-1), choices=contrastOptions, style=wx.CB_READONLY)
-		self.grid.Add(self.chooseContrast, pos=(3,2))
-		### Not working yet, work in progress
+		self.language = event.GetString()
+		# Find all contrasts for the language
+		self.cur.execute("SELECT contrast FROM samples WHERE language = ?", (self.language,))
+		self.all_contrasts = sorted(x[0] for x in set(self.cur))
+		print (self.all_contrasts)
+		# Update the contrast dropdown menu
+		self.chooseContrast.SetItems(['-'] + self.all_contrasts)
 
 	def OnChooseContrast(self, event):
+		# Save the chosen contrast
 		print (event.GetString())
+		self.contrast = event.GetString()
 		
 
 

@@ -74,6 +74,11 @@ class TrainingWindow(wx.Frame):
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.panel.SetSizerAndFit(self.mainSizer)
 		
+		self.Show()
+		self.moo.Hide()
+		self.quack.Hide()
+		self.next.Hide()
+		
 				
 		# Need to have a way to handle what happens when TrainingWindow closes, i.e.:
 		# 1. statistics are stored

@@ -1,6 +1,6 @@
 #!/usr/bin/env python2
 
-import wx, os, sys, sqlite3
+import wx, os, sqlite3
 
 srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
@@ -30,8 +30,8 @@ class MainWindowPanel(wx.Panel):
 		
 		with sqlite3.connect(datafile) as data:
 			self.cur = data.cursor()
-		self.cur.execute("SELECT language FROM samples")
-		self.all_languages = sorted(x[0] for x in set(self.cur))  # this appears to be a list with a tuple in it?
+		self.cur.execute("SELECT DISTINCT language FROM contrast_set")
+		self.all_languages = sorted(x[0] for x in self.cur)  # cur returns a list of tuples
 		print (self.all_languages)
 		
 		# The following will be updated as options are chosen
@@ -93,8 +93,8 @@ class MainWindowPanel(wx.Panel):
 		print (event.GetString())
 		self.language = event.GetString()
 		# Find all contrasts for the language
-		self.cur.execute("SELECT contrast FROM samples WHERE language = ?", (self.language,))
-		self.all_contrasts = sorted(x[0] for x in set(self.cur))
+		self.cur.execute("SELECT contrast FROM contrast_set WHERE language = ?", (self.language,))
+		self.all_contrasts = sorted(x[0] for x in self.cur)
 		print (self.all_contrasts)
 		# Update the contrast dropdown menu
 		self.chooseContrast.SetItems(['-'] + self.all_contrasts)

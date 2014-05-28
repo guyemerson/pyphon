@@ -4,8 +4,15 @@ import wx, random, os, sqlite3
 
 srcDir = os.path.expanduser(os.getcwd())
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
-datafile = os.path.join(dataDir, 'data.db')
 	
+def filepath(text):
+	"""	If text contains no slashes, add the default data directory	"""
+	directory, filename = os.path.split(text)
+	if directory == "":
+		return os.path.join(dataDir, filename)
+	else:
+		return text
+
 
 class TrainingWindow(wx.Frame):
 	'''
@@ -117,7 +124,7 @@ class TrainingWindow(wx.Frame):
 	def OnNext(self, event):
 		# Take a random sample, and store it
 		filename, options, answer = random.choice(self.items)
-		self.file = filename
+		self.file = filepath(filename)
 		self.options = options.split('|', 1)
 		self.answer = answer
 		print(self.file)
@@ -132,7 +139,7 @@ class TrainingWindow(wx.Frame):
 		self.feedback.Label = ""
 		self.next.Hide()
 		# Play the file
-		wx.Sound(filename).Play()
+		wx.Sound(self.file).Play()
 	
 		
 	def OnStart(self, event):

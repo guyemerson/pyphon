@@ -6,7 +6,7 @@ srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
 datafile = os.path.join(dataDir, 'data.db')
 
-import trainingwindow, filewindow
+import trainingwindow, filewindow #, statsdialog
 
 
 
@@ -146,6 +146,7 @@ class MainWindow(wx.Frame):
 		self.SetMenuBar(menuBar)
 		
 		self.Bind(wx.EVT_MENU, self.OnFile, menuAdd)
+		self.Bind(wx.EVT_MENU, self.OnStats, menuStats)
 		self.Bind(wx.EVT_MENU, self.OnHelp, menuHelp)
 		self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
 		self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
@@ -154,6 +155,10 @@ class MainWindow(wx.Frame):
 	def OnFile(self, event):
 		secondWindow = filewindow.FileWindow(None, "File Submission")
 		secondWindow.Show()
+	def OnStats(self, event):
+		dlg = wx.MessageDialog(self, "Your stats are great!\nStas and Guy will have a display ready for you in no time.", "User Statistics", wx.OK) 
+		dlg.ShowModal()
+		dlg.Destroy()
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()

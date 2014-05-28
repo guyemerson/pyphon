@@ -19,8 +19,6 @@ class MainWindowPanel(wx.Panel):
 	- database interaction (to fetch language and contrast options)
 	- a GridBagSizer for organising the widgets in the panel
 	- a BoxSizer as a "main sizer", in which the GridBagSizer fits
-	
-	Currently the transition from buttons to ComboBoxes is underway, and database hookup is under development. ComboBoxes may contain some errors.
 	'''
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent, size=(400,400))

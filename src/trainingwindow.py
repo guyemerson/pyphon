@@ -17,8 +17,6 @@ class TrainingWindow(wx.Frame):
 	
 	The panel contains:
 	- The buttons and their methods
-	
-	Database hookup is yet to begin. This is a high priority for development.
 	'''
 	def __init__(self, parent, title, cursor, language, contrast):  # need to incorporate language and contrast
 		"""
@@ -74,7 +72,7 @@ class TrainingWindow(wx.Frame):
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.panel.SetSizerAndFit(self.mainSizer)
 		
-		self.Show()
+		self.Show() # is this line necessary?
 		self.moo.Hide()
 		self.quack.Hide()
 		self.next.Hide()

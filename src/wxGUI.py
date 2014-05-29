@@ -6,7 +6,7 @@ srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
 datafile = os.path.join(dataDir, 'data.db')
 
-import trainingwindow, filewindow #, statsdialog
+import trainingwindow, filewindow, statsdialog
 
 
 
@@ -153,12 +153,17 @@ class MainWindow(wx.Frame):
 	
 
 	def OnFile(self, event):
+		'''Opens FileWindow.'''
 		secondWindow = filewindow.FileWindow(None, "File Submission")
 		secondWindow.Show()
 	def OnStats(self, event):
-		dlg = wx.MessageDialog(self, "Your stats are great!\nStas and Guy will have a display ready for you in no time.", "User Statistics", wx.OK) 
-		dlg.ShowModal()
-		dlg.Destroy()
+		'''Brings up stats. Used to be dialogue box, now runs statsdialog's pie chart using pylab.'''
+		#dlg = wx.MessageDialog(self, "Your stats are great!\nStas and Guy will have a display ready for you in no time.", "User Statistics", wx.OK) 
+		#dlg.ShowModal()
+		#dlg.Destroy()
+		statsdialog.piechart()  # this has some weird bugginess. 
+		# When I run it for the first time in wxGUI it seems to be loading indefinitely. 
+		# But if I first load it independently through statsdialog, then run wxGUI, then it works fine. This could be a real issue for users.
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()

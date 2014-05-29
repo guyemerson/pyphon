@@ -6,9 +6,7 @@ srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
 datafile = os.path.join(dataDir, 'data.db')
 
-import trainingwindow, filewindow, statsdialog
-
-
+import trainingdialog, filewindow, statsdialog, optionsdialog
 
 class MainWindowPanel(wx.Panel):
 	'''
@@ -39,6 +37,8 @@ class MainWindowPanel(wx.Panel):
 		self.language = None
 		self.contrast = None
 		
+		self.sessionStats = {True: 0, False: 0}
+		
 		# WIDGET CODE
 		
 		self.chooseLanguage = wx.ComboBox(self, size=(95,-1), choices=["-"] + self.all_languages, style=wx.CB_READONLY)
@@ -51,9 +51,12 @@ class MainWindowPanel(wx.Panel):
 		self.Bind(wx.EVT_COMBOBOX, self.OnChooseLanguage, self.chooseLanguage)
 		self.Bind(wx.EVT_COMBOBOX, self.OnChooseContrast, self.chooseContrast)
 		
+		self.sessionFeedback = wx.StaticText(self, label="You have not trained so far today.")
+		
 		# GRID CODE
 		
 		self.grid = wx.GridBagSizer(hgap=10, vgap=10)
+		self.grid.Add(self.sessionFeedback, pos=(1,0), span=(1,3))
 		self.grid.Add(self.chooseLanguage, pos=(3,0))
 		self.grid.Add(self.chooseContrast, pos=(3,1))
 		self.grid.Add(self.train, pos=(3,2))
@@ -61,33 +64,23 @@ class MainWindowPanel(wx.Panel):
 		self.mainSizer.Add(self.grid, 20, wx.ALL, 20)
 		self.SetSizerAndFit(self.mainSizer)
 		
-	def OnBritish(self, event):
-		# This function will probably be removed
-		if True: # this should depend on the button label
-			chosenLanguage = "British English"
-		if True: # need to have actual choice here
-			chosenContrast = "th-s"
-		trainingTitle = chosenLanguage + " | " + chosenContrast
-		secondWindow = trainingwindow.TrainingWindow(None, trainingTitle, self.cur, chosenLanguage, chosenContrast)
-		secondWindow.Show()
-		secondWindow.moo.Hide(), secondWindow.quack.Hide(), secondWindow.next.Hide()
-		#self.english.Hide(), self.polish.Hide()	
-	
-		#font = wx.SystemSettings_GetFont(wx.SYS_SYSTEM_FONT)
-		#font.SetPointSize(20)			
-		#self.waitingText = wx.StaticText(self.panel, label="A session is underway.\nPlease finish your session before starting a new one.")
-		#self.waitingText.SetFont(font)
-		#self.grid.Add(self.waitingText, pos=(3,0))  -- Doesn't seem to respond to grid placement
 	
 	def OnTrain(self, event):
 		# Check that the current settings are valid
 		assert self.language in self.all_languages
 		assert self.contrast in self.all_contrasts
 		# Open a new window
+		initStats = dict(self.sessionStats)
 		trainingTitle = self.language + " | " + self.contrast
-		self.trainingWindow = trainingwindow.TrainingWindow(None, trainingTitle, self.cur, self.language, self.contrast)
-		
-	
+		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (400,300), self.cur, self.language, self.contrast)
+		dlg.ShowModal()
+		dlg.Destroy()
+		# Training feedback message
+		trainedTrue = self.sessionStats[True]  - initStats[True]
+		trainedTotal = trainedTrue + self.sessionStats[False] - initStats[False]
+		percent = 100*float(trainedTrue)/float(trainedTotal)
+		self.sessionFeedback.SetLabel("In your last session you trained a total of %d reps \nand got %.0f%% correct." % (trainedTotal, percent))
+			
 	def OnChooseLanguage(self, event):
 		# Save the chosen language
 		print (event.GetString())
@@ -119,6 +112,7 @@ class MainWindow(wx.Frame):
 	'''
 	def __init__(self, parent, title):
 		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,400))
+		self.Bind(wx.EVT_CLOSE, self.OnClose)
 
 		self.panel = MainWindowPanel(self)	
 
@@ -129,8 +123,9 @@ class MainWindow(wx.Frame):
 		filemenu = wx.Menu()
 		helpmenu = wx.Menu()
 		
-		menuAdd = filemenu.Append(wx.ID_ANY, "A&dd", "Add sound files to the database")
-		menuStats = filemenu.Append(wx.ID_ANY, "View my s&tats", "Statistics of past performance")
+		menuOptions = filemenu.Append(wx.ID_ANY, "&Settings", "change settings")
+		menuAdd = filemenu.Append(wx.ID_ANY, "&Add", "Add sound files to the database")
+		menuStats = filemenu.Append(wx.ID_ANY, "View my &stats", "Statistics of past performance")
 		menuHelp = helpmenu.Append(wx.ID_ANY, "&Help topics", "You could always call Stas for help")
 		menuAbout = helpmenu.Append(wx.ID_ABOUT, "&About", " Information about this program")
 #		helpmenu.AppendSeparator() 
@@ -145,6 +140,7 @@ class MainWindow(wx.Frame):
 		menuBar.Append(helpmenu, "&Help")
 		self.SetMenuBar(menuBar)
 		
+		self.Bind(wx.EVT_MENU, self.OnOptions, menuOptions)
 		self.Bind(wx.EVT_MENU, self.OnFile, menuAdd)
 		self.Bind(wx.EVT_MENU, self.OnStats, menuStats)
 		self.Bind(wx.EVT_MENU, self.OnHelp, menuHelp)
@@ -164,6 +160,10 @@ class MainWindow(wx.Frame):
 		statsdialog.piechart()  # this has some weird bugginess. 
 		# When I run it for the first time in wxGUI it seems to be loading indefinitely. 
 		# But if I first load it independently through statsdialog, then run wxGUI, then it works fine. This could be a real issue for users.
+	def OnOptions(self, event):
+		dlg = optionsdialog.OptionsDialog(self, "Settings", (200,200))
+		dlg.ShowModal()
+		dlg.Destroy()
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
@@ -172,7 +172,10 @@ class MainWindow(wx.Frame):
 		dlg = wx.MessageDialog(self, "What's this? Another message?\nWow Stas, you are so full of surprises!", "More fun messages", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
 		dlg.Destroy()
-	def OnExit(self, event):
+	def OnClose(self, event):
+		# Here do all the things you want to do when closing, like saving data, and asking the user questions using dialog boxes
+		self.Destroy()
+	def OnExit(self, event): # OnClose should supersede
 		self.Close(True) # also want to close all other windows
 
 

@@ -1,4 +1,4 @@
-# This module contains the TrainingWindow wx GUI object and supporting functions only.
+# This module contains the TrainingDialog wx GUI object and supporting functions only.
 
 import wx, random, os, sqlite3
 
@@ -14,23 +14,25 @@ def filepath(text):
 		return text
 
 
-class TrainingWindow(wx.Frame):
+class TrainingDialog(wx.Dialog):
 	'''
-	This is the frame (i.e. window) where training happens. Probably the most important frame of all.
+	This is the dialogue box where training happens.
 	
-	The frame contains:
+	The box contains:
 	- a panel object (internally coded, below) for organising and positioning widgets (buttons, text etc.)
-	- a "status bar", which is not yet used to its full potential (because I haven't figured out how to give it commands yet)
 	
 	The panel contains:
 	- The buttons and their methods
 	'''
-	def __init__(self, parent, title, cursor, language, contrast):  # need to incorporate language and contrast
+	def __init__(self, frame, title, size, cursor, language, contrast):
+		wx.Dialog.__init__(self, parent=frame, title=title, size=size)
+		
 		"""
 		cursor - SQL database cursor object
 		language - chosen language for training session
 		contrast - chosen contrast for training session
 		"""
+		self.parent = frame
 		print(language)
 		print(contrast)
 		# We store all information about test samples in the list self.items
@@ -44,12 +46,7 @@ class TrainingWindow(wx.Frame):
 		self.options = []
 		
 		# Stats for the user's performance
-		self.sessionStats = {True: 0, False: 0} # need to develop this
-	
-		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(300,200))
-		# Would be easier if the Frame couldn't be closed using the icon in the corner. Could this be disabled?
-		self.CreateStatusBar()   # would be nice to have the status bar show the current stats for the session (like in Anki)
-		
+		#self.sessionStats = {True: 0, False: 0} # need to develop this	
 		
 		# PANEL CODE (sometimes done as separate object, here one object together with frame)
 		
@@ -101,12 +98,12 @@ class TrainingWindow(wx.Frame):
 		# Compare user's choice with the correct answer
 		if self.options[choice] == self.answer:
 			self.feedback.SetForegroundColour((0,255,0))
-			self.sessionStats[True] += 1
+			self.parent.sessionStats[True] += 1
 		else:
 			self.feedback.SetForegroundColour((255,0,0))
-			self.sessionStats[False] += 1
+			self.parent.sessionStats[False] += 1
 		print(self.options[choice] == self.answer)
-		print(self.sessionStats)
+		print(self.parent.sessionStats)
 		# Give feedback to user
 		self.feedback.Label = self.answer.title()
 		# Change the buttons
@@ -153,5 +150,3 @@ class TrainingWindow(wx.Frame):
 			self.next.Hide()
 			self.feedback.Label = ""
 			#self.feedback.SetForegroundColour((0,0,0))
-	
-	# END OF BUTTONS

@@ -1,12 +1,15 @@
 #!/usr/bin/env python2
 
-import wx, os, sqlite3
+import wx, os, sqlite3, datetime
 
 srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
 datafile = os.path.join(dataDir, 'data.db')
+userdata = os.path.join(dataDir, 'userdata.db')
 
 import trainingdialog, filewindow, statsdialog, optionsdialog
+
+golden = 0.61803398875
 
 class MainWindowPanel(wx.Panel):
 	'''
@@ -19,12 +22,15 @@ class MainWindowPanel(wx.Panel):
 	- a BoxSizer as a "main sizer", in which the GridBagSizer fits
 	'''
 	def __init__(self, parent):
-		wx.Panel.__init__(self, parent, size=(400,400))
+		wx.Panel.__init__(self, parent, size=(400,int(400*golden)))
 		
 		self.SetBackgroundColour("#ededed")
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 
 		# DATABASE CODE
+
+		self.allowProfanity = False  # this should actually read from userdata.db to determine the current settings
+		# Then swear words should be kept or removed as appropriate
 		
 		with sqlite3.connect(datafile) as data:
 			self.cur = data.cursor()
@@ -41,7 +47,7 @@ class MainWindowPanel(wx.Panel):
 		
 		# WIDGET CODE
 		
-		self.chooseLanguage = wx.ComboBox(self, size=(95,-1), choices=["-"] + self.all_languages, style=wx.CB_READONLY)
+		self.chooseLanguage = wx.ComboBox(self, size=(140,-1), choices=["-"] + self.all_languages, style=wx.CB_READONLY)
 		self.chooseContrast = wx.ComboBox(self, size=(95,-1), choices=["-"], style=wx.CB_READONLY)
 		# The following line will be removed eventually
 		self.chooseLanguage.Append("Polish")
@@ -72,14 +78,17 @@ class MainWindowPanel(wx.Panel):
 		# Open a new window
 		initStats = dict(self.sessionStats)
 		trainingTitle = self.language + " | " + self.contrast
-		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (400,300), self.cur, self.language, self.contrast)
+		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(golden*300)), self.cur, self.language, self.contrast)
 		dlg.ShowModal()
 		dlg.Destroy()
 		# Training feedback message
-		trainedTrue = self.sessionStats[True]  - initStats[True]
-		trainedTotal = trainedTrue + self.sessionStats[False] - initStats[False]
-		percent = 100*float(trainedTrue)/float(trainedTotal)
-		self.sessionFeedback.SetLabel("In your last session you trained a total of %d reps \nand got %.0f%% correct." % (trainedTotal, percent))
+		try:
+			trainedTrue = self.sessionStats[True]  - initStats[True]
+			trainedTotal = trainedTrue + self.sessionStats[False] - initStats[False]
+			percent = 100*float(trainedTrue)/float(trainedTotal)
+			self.sessionFeedback.SetLabel("In your last session you trained a total of %d reps \nand got %.0f%% correct." % (trainedTotal, percent))
+		except ZeroDivisionError:
+			print ("zero reps - no feedback")
 			
 	def OnChooseLanguage(self, event):
 		# Save the chosen language
@@ -111,7 +120,7 @@ class MainWindow(wx.Frame):
 	- a "status bar" (the little info strip at the bottom)
 	'''
 	def __init__(self, parent, title):
-		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,400))
+		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,int(400*golden)))
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
 
 		self.panel = MainWindowPanel(self)	
@@ -145,7 +154,7 @@ class MainWindow(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnStats, menuStats)
 		self.Bind(wx.EVT_MENU, self.OnHelp, menuHelp)
 		self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
-		self.Bind(wx.EVT_MENU, self.OnExit, menuExit)
+		self.Bind(wx.EVT_MENU, self.OnClose, menuExit)
 	
 
 	def OnFile(self, event):
@@ -155,11 +164,9 @@ class MainWindow(wx.Frame):
 	def OnStats(self, event):
 		'''Brings up stats. Used to be dialogue box, now runs statsdialog's pie chart using pylab.'''
 		#dlg = wx.MessageDialog(self, "Your stats are great!\nStas and Guy will have a display ready for you in no time.", "User Statistics", wx.OK) 
-		#dlg.ShowModal()
-		#dlg.Destroy()
-		statsdialog.piechart()  # this has some weird bugginess. 
-		# When I run it for the first time in wxGUI it seems to be loading indefinitely. 
-		# But if I first load it independently through statsdialog, then run wxGUI, then it works fine. This could be a real issue for users.
+		dlg = statsdialog.StatsDialog(self, title="Statistics Summary", size=(300,300))
+		dlg.ShowModal()
+		dlg.Destroy()
 	def OnOptions(self, event):
 		dlg = optionsdialog.OptionsDialog(self, "Settings", (200,200))
 		dlg.ShowModal()
@@ -174,6 +181,11 @@ class MainWindow(wx.Frame):
 		dlg.Destroy()
 	def OnClose(self, event):
 		# Here do all the things you want to do when closing, like saving data, and asking the user questions using dialog boxes
+		with open(userdata, 'a') as f:
+			print (str(self.panel.sessionStats))
+			f.write(str(datetime.date.today()))
+			f.write(str(self.panel.sessionStats))
+			f.write("\n")
 		self.Destroy()
 	def OnExit(self, event): # OnClose should supersede
 		self.Close(True) # also want to close all other windows

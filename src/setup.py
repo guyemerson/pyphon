@@ -29,6 +29,6 @@ with sqlite3.connect(datafile) as data:
 		print(x)
 	
 	print("Contrasts:")
-	cur.execute("SELECT DISTINCT * FROM contrast_set")
+	cur.execute("SELECT * FROM contrast_set")
 	for x in cur:
 		print(x)

@@ -1,6 +1,6 @@
 # This module contains the TrainingDialog wx GUI object and supporting functions only.
 
-import wx, random, os, sqlite3
+import wx, random, os
 
 srcDir = os.path.expanduser(os.getcwd())
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
@@ -28,7 +28,7 @@ class TrainingDialog(wx.Dialog):
 		wx.Dialog.__init__(self, parent=frame, title=title, size=size)
 		
 		"""
-		cursor - SQL database cursor object
+		cursor - SQLite3 database cursor object
 		language - chosen language for training session
 		contrast - chosen contrast for training session
 		"""
@@ -36,14 +36,21 @@ class TrainingDialog(wx.Dialog):
 		print(language)
 		print(contrast)
 		# We store all information about test samples in the list self.items
-		cursor.execute("SELECT file, options, answer FROM samples WHERE language = ? AND contrast = ?", (language, contrast))
+		cursor.execute('''SELECT file, option_1, option_2, answer FROM
+			((SELECT option_1, option_2 FROM minimal_pairs
+				WHERE language = ? AND contrast = ?)
+			JOIN (SELECT file, answer FROM samples
+				WHERE language = ?)
+			ON option_1 = answer OR option_2 = answer)
+			''', (language, contrast, language))
+		
 		self.items = list(cursor)
 		print(self.items)
 		
 		# Information about the current sample
 		self.file = None
+		self.options = [None, None]
 		self.answer = None
-		self.options = []
 		
 		# Stats for the user's performance
 		#self.sessionStats = {True: 0, False: 0} # need to develop this	
@@ -120,9 +127,9 @@ class TrainingDialog(wx.Dialog):
 		
 	def OnNext(self, event):
 		# Take a random sample, and store it
-		filename, options, answer = random.choice(self.items)
+		filename, option_1, option_2, answer = random.choice(self.items)
 		self.file = filepath(filename)
-		self.options = options.split('|', 1)
+		self.options = [option_1, option_2]
 		self.answer = answer
 		print(self.file)
 		print(self.options)

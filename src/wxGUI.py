@@ -4,7 +4,7 @@ import wx, os, sqlite3
 
 srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
-datafile = os.path.join(dataDir, 'data.db')
+datafile = os.path.join(dataDir, 'data_v2.db')
 
 import trainingdialog, filewindow, statsdialog, optionsdialog
 

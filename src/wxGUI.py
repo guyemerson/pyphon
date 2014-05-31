@@ -133,11 +133,12 @@ class MainWindow(wx.Frame):
 		helpmenu = wx.Menu()
 		
 		menuOptions = filemenu.Append(wx.ID_ANY, "&Settings", "change settings")
-		menuAdd = filemenu.Append(wx.ID_ANY, "&Add", "Add sound files to the database")
-		menuStats = filemenu.Append(wx.ID_ANY, "View my &stats", "Statistics of past performance")
-		menuHelp = helpmenu.Append(wx.ID_ANY, "&Help topics", "You could always call Stas for help")
+		menuStats =   filemenu.Append(wx.ID_ANY, "View my &stats", "Statistics of past performance")
+		filemenu.AppendSeparator()
+		menuViewDB =  filemenu.Append(wx.ID_ANY, "View &database", "View and edit database of all tapes and sounds")
+		menuAdd =     filemenu.Append(wx.ID_ANY, "&Add to database", "Add sound files to the database")
+		menuHelp =  helpmenu.Append(wx.ID_ANY, "&Help topics", "You could always call Stas for help")
 		menuAbout = helpmenu.Append(wx.ID_ABOUT, "&About", " Information about this program")
-#		helpmenu.AppendSeparator() 
 		menuExit = filemenu.Append(wx.ID_EXIT, "E&xit", " Terminate the program")
 		# The StausBar messages seem to be persistent. How to get rid of them after rollover?
 		# How to send commands to the StatusBar more directly? e.g. for showing today's stats, like in Anki
@@ -150,8 +151,9 @@ class MainWindow(wx.Frame):
 		self.SetMenuBar(menuBar)
 		
 		self.Bind(wx.EVT_MENU, self.OnOptions, menuOptions)
-		self.Bind(wx.EVT_MENU, self.OnFile, menuAdd)
 		self.Bind(wx.EVT_MENU, self.OnStats, menuStats)
+		self.Bind(wx.EVT_MENU, self.OnView, menuViewDB)
+		self.Bind(wx.EVT_MENU, self.OnFile, menuAdd)
 		self.Bind(wx.EVT_MENU, self.OnHelp, menuHelp)
 		self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
 		self.Bind(wx.EVT_MENU, self.OnClose, menuExit)
@@ -171,6 +173,8 @@ class MainWindow(wx.Frame):
 		dlg = optionsdialog.OptionsDialog(self, "Settings", (200,200))
 		dlg.ShowModal()
 		dlg.Destroy()
+	def OnView(self, event):
+		pass
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()

@@ -82,15 +82,26 @@ class TrainingDialog(wx.Dialog):
 		self.quack.Hide()
 		self.next.Hide()
 		
+		# Keyboard shortcuts
+		self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
 				
 		# Need to have a way to handle what happens when TrainingWindow closes, i.e.:
-		# 1. statistics are stored
-		# 2. MainWindow should return to normal, and you should be able to open a new TrainingWindow
+		# statistics are stored
 		
 		
 	# Below - BUTTONS!
 	# This is where the action happens
 	
+	def OnKeyUp(self, event):
+		print ("you pressed a key")
+		key = event.GetKeyCode()
+		keyCharacter = chr(key)
+		if keyCharacter == "1":
+			self.OnMoo(event)
+		elif keyCharacter == "2":
+			self.OnQuack(event)
+	# A space event for Next would also be nice
+	# These still need to be (a) idiot-proofed (so they only work at the right time), and (b) the "error bell" needs to be removed
 	def OnChoice(self, choice):
 		"""
 		Button press depending on choice (index in self.options)

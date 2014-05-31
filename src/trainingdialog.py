@@ -24,15 +24,16 @@ class TrainingDialog(wx.Dialog):
 	The panel contains:
 	- The buttons and their methods
 	'''
-	def __init__(self, frame, title, size, cursor, language, contrast):
-		wx.Dialog.__init__(self, parent=frame, title=title, size=size)
+	def __init__(self, parentPanel, title, size, cursor, language, contrast):
+		wx.Dialog.__init__(self, parent=parentPanel, title=title, size=size)
 		
 		"""
 		cursor - SQLite3 database cursor object
 		language - chosen language for training session
 		contrast - chosen contrast for training session
 		"""
-		self.parent = frame
+		self.parent = parentPanel
+		self.size = size
 		print(language)
 		print(contrast)
 		# We store all information about test samples in the list self.items
@@ -55,12 +56,12 @@ class TrainingDialog(wx.Dialog):
 		# Stats for the user's performance
 		#self.sessionStats = {True: 0, False: 0} # need to develop this	
 		
-		# PANEL CODE (sometimes done as separate object, here one object together with frame)
+		# PANEL CODE
 		
-		self.panel = wx.Panel(self, size=(300,200))
+		self.panel = wx.Panel(self, size=self.size)
 		self.panel.SetBackgroundColour('#ededed')
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
+		self.grid = wx.GridBagSizer(hgap=20, vgap=10)
 		
 		self.feedback = wx.StaticText(self.panel, label="")
 		
@@ -74,11 +75,11 @@ class TrainingDialog(wx.Dialog):
 		self.Bind(wx.EVT_BUTTON, self.OnNext, self.next)
 		self.Bind(wx.EVT_BUTTON, self.OnStart, self.start)
 
-		self.grid.Add(self.moo, pos=(1,0))
-		self.grid.Add(self.quack, pos=(1,2))
-		self.grid.Add(self.feedback, pos=(2,1))
-		self.grid.Add(self.next, pos=(3,1))
-		self.grid.Add(self.start, pos=(3,2))
+		self.grid.Add(self.moo, pos=(1,1), span=(1,2))
+		self.grid.Add(self.quack, pos=(1,3), span=(1,2))
+		self.grid.Add(self.feedback, pos=(2,2), span=(1,2))
+		self.grid.Add(self.next, pos=(3,2), span=(1,2)) 
+		self.grid.Add(self.start, pos=(4,3))
 
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.panel.SetSizerAndFit(self.mainSizer)

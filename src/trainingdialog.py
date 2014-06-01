@@ -1,6 +1,6 @@
 # This module contains the TrainingDialog wx GUI object and supporting functions only.
 
-import wx, random, os, sqlite3
+import wx, random, os
 
 srcDir = os.path.expanduser(os.getcwd())
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
@@ -28,7 +28,7 @@ class TrainingDialog(wx.Dialog):
 		wx.Dialog.__init__(self, parent=parentPanel, title=title, size=size)
 		
 		"""
-		cursor - SQL database cursor object
+		cursor - SQLite3 database cursor object
 		language - chosen language for training session
 		contrast - chosen contrast for training session
 		"""
@@ -44,7 +44,6 @@ class TrainingDialog(wx.Dialog):
 				WHERE language = ?)
 			ON option_1 = answer OR option_2 = answer)
 			''', (language, contrast, language))
-		#cursor.execute("SELECT file, options, answer FROM samples WHERE language = ? AND contrast = ?", (language, contrast))
 		self.items = list(cursor)
 		print(self.items)
 		

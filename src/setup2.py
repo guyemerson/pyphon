@@ -9,23 +9,23 @@ with open(datafile,'wb') as f:
 
 with sqlite3.connect(datafile) as data:
 	cur = data.cursor()
+	# Define tables in the database
 	cur.execute('''CREATE TABLE samples
-		(file text NOT NULL PRIMARY KEY,
-		 speaker text NOT NULL,
-		 language text NOT NULL,
-		 answer text NOT NULL)''')
+		(file TEXT PRIMARY KEY,
+		 speaker TEXT NOT NULL,
+		 language TEXT NOT NULL,
+		 answer TEXT NOT NULL)''')
 	
 	cur.execute('''CREATE TABLE minimal_pairs
-		(language text NOT NULL,
-		 contrast text NOT NULL,
-		 option_1 text NOT NULL,
-		 option_2 text NOT NULL)''')
+		(language TEXT NOT NULL,
+		 contrast TEXT NOT NULL,
+		 option_1 TEXT NOT NULL,
+		 option_2 TEXT NOT NULL)''')
 	
 	cur.execute('''CREATE VIEW contrast_set
 		AS SELECT DISTINCT language, contrast FROM minimal_pairs''')
 	
-	# Maybe we should JOIN 'samples' and 'minimal_pairs' 
-	
+	# Add some data
 	language = 'British English'
 	contrast = 'th-s'
 	speaker = 'Guy'
@@ -39,7 +39,7 @@ with sqlite3.connect(datafile) as data:
 		cur.execute("INSERT INTO minimal_pairs VALUES (?,?,?,?)",
 			(language, contrast, a, b))
 	
-	
+	# Print, to check if saved correctly
 	print("Entries:")
 	cur.execute("SELECT * FROM samples")
 	for x in cur:

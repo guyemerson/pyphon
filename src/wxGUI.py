@@ -1,6 +1,8 @@
 #!/usr/bin/env python2
 
+from __future__ import division
 import wx, os, sqlite3, datetime
+from copy import copy
 
 srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
@@ -76,7 +78,7 @@ class MainWindowPanel(wx.Panel):
 		assert self.language in self.all_languages
 		assert self.contrast in self.all_contrasts
 		# Open a new window
-		initStats = dict(self.sessionStats)
+		initStats = copy(self.sessionStats)
 		trainingTitle = self.language + " | " + self.contrast
 		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(GOLDEN*300)), self.cur, self.language, self.contrast)
 		dlg.ShowModal()
@@ -85,7 +87,7 @@ class MainWindowPanel(wx.Panel):
 		try:
 			trainedTrue = self.sessionStats[True]  - initStats[True]
 			trainedTotal = trainedTrue + self.sessionStats[False] - initStats[False]
-			percent = 100*float(trainedTrue)/float(trainedTotal)
+			percent = 100 * trainedTrue / trainedTotal
 			self.sessionFeedback.SetLabel("In your last session you trained a total of %d reps \nand got %.0f%% correct." % (trainedTotal, percent))
 		except ZeroDivisionError:
 			print ("zero reps - no feedback")
@@ -167,26 +169,32 @@ class MainWindow(wx.Frame):
 		nb.AddPage(filewindow.DatabasePanel(nb), "Add files")
 		secondWindow.Show()
 		#nb.Show()
+	
 	def OnStats(self, event):
 		'''Brings up stats. Used to be a pie chart using pylab, now a dialogue box.'''
 		#dlg = wx.MessageDialog(self, "Your stats are great!\nStas and Guy will have a display ready for you in no time.", "User Statistics", wx.OK) 
 		dlg = statsdialog.StatsDialog(self, title="Statistics Summary", size=(300,300))
 		dlg.ShowModal()
 		dlg.Destroy()
+	
 	def OnOptions(self, event):
 		dlg = optionsdialog.OptionsDialog(self, "Settings", (200,200))
 		dlg.ShowModal()
 		dlg.Destroy()
+	
 	def OnView(self, event):
 		pass
+	
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
 		dlg.Destroy()
+	
 	def OnAbout(self, event):
 		dlg = wx.MessageDialog(self, "What's this? Another message?\nWow Stas, you are so full of surprises!", "More fun messages", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
 		dlg.Destroy()
+	
 	def OnClose(self, event):
 		# Here do all the things you want to do when closing, like saving data, and asking the user questions using dialog boxes
 		with open(userdata, 'a') as f:
@@ -195,6 +203,7 @@ class MainWindow(wx.Frame):
 			f.write(str(self.panel.sessionStats))
 			f.write("\n")
 		self.Destroy()
+	
 	def OnExit(self, event): # OnClose should supersede
 		self.Close(True) # also want to close all other windows
 

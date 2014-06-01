@@ -175,12 +175,8 @@ class MainWindow(wx.Frame):
 		dlg = optionsdialog.OptionsDialog(self, "Settings", (200,200))
 		dlg.ShowModal()
 		dlg.Destroy()
-<<<<<<< HEAD
 	def OnView(self, event):
 		pass
-=======
-	
->>>>>>> FETCH_HEAD
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()

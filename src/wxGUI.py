@@ -161,8 +161,12 @@ class MainWindow(wx.Frame):
 
 	def OnFile(self, event):
 		'''Opens FileWindow.'''
-		secondWindow = filewindow.FileWindow(None, "File Submission")
+		secondWindow = filewindow.FileWindow(self, "File Submission")	
+		nb = wx.Notebook(secondWindow)
+		nb.AddPage(filewindow.MetadataPanel(nb), "Categories")
+		nb.AddPage(filewindow.DatabasePanel(nb), "Add files")
 		secondWindow.Show()
+		#nb.Show()
 	def OnStats(self, event):
 		'''Brings up stats. Used to be a pie chart using pylab, now a dialogue box.'''
 		#dlg = wx.MessageDialog(self, "Your stats are great!\nStas and Guy will have a display ready for you in no time.", "User Statistics", wx.OK) 

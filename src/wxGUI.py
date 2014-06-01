@@ -4,12 +4,12 @@ import wx, os, sqlite3, datetime
 
 srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
-datafile = os.path.join(dataDir, 'data.db')
+datafile = os.path.join(dataDir, 'data_v2.db')
 userdata = os.path.join(dataDir, 'userdata.db')
 
 import trainingdialog, filewindow, statsdialog, optionsdialog
 
-golden = 0.61803398875
+GOLDEN = 0.61803398875
 
 class MainWindowPanel(wx.Panel):
 	'''
@@ -22,7 +22,7 @@ class MainWindowPanel(wx.Panel):
 	- a BoxSizer as a "main sizer", in which the GridBagSizer fits
 	'''
 	def __init__(self, parent):
-		wx.Panel.__init__(self, parent, size=(400,int(400*golden)))
+		wx.Panel.__init__(self, parent, size=(400,int(400*GOLDEN)))
 		
 		self.SetBackgroundColour("#ededed")
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -78,7 +78,7 @@ class MainWindowPanel(wx.Panel):
 		# Open a new window
 		initStats = dict(self.sessionStats)
 		trainingTitle = self.language + " | " + self.contrast
-		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(golden*300)), self.cur, self.language, self.contrast)
+		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(GOLDEN*300)), self.cur, self.language, self.contrast)
 		dlg.ShowModal()
 		dlg.Destroy()
 		# Training feedback message
@@ -120,7 +120,7 @@ class MainWindow(wx.Frame):
 	- a "status bar" (the little info strip at the bottom)
 	'''
 	def __init__(self, parent, title):
-		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,int(400*golden)))
+		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,int(400*GOLDEN)))
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
 
 		self.panel = MainWindowPanel(self)	
@@ -163,26 +163,34 @@ class MainWindow(wx.Frame):
 		'''Opens FileWindow.'''
 		secondWindow = filewindow.FileWindow(None, "File Submission")
 		secondWindow.Show()
+	
 	def OnStats(self, event):
 		'''Brings up stats. Used to be dialogue box, now runs statsdialog's pie chart using pylab.'''
 		#dlg = wx.MessageDialog(self, "Your stats are great!\nStas and Guy will have a display ready for you in no time.", "User Statistics", wx.OK) 
 		dlg = statsdialog.StatsDialog(self, title="Statistics Summary", size=(300,300))
 		dlg.ShowModal()
 		dlg.Destroy()
+	
 	def OnOptions(self, event):
 		dlg = optionsdialog.OptionsDialog(self, "Settings", (200,200))
 		dlg.ShowModal()
 		dlg.Destroy()
+<<<<<<< HEAD
 	def OnView(self, event):
 		pass
+=======
+	
+>>>>>>> FETCH_HEAD
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
 		dlg.Destroy()
+	
 	def OnAbout(self, event):
 		dlg = wx.MessageDialog(self, "What's this? Another message?\nWow Stas, you are so full of surprises!", "More fun messages", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
 		dlg.Destroy()
+	
 	def OnClose(self, event):
 		# Here do all the things you want to do when closing, like saving data, and asking the user questions using dialog boxes
 		with open(userdata, 'a') as f:
@@ -191,6 +199,7 @@ class MainWindow(wx.Frame):
 			f.write(str(self.panel.sessionStats))
 			f.write("\n")
 		self.Destroy()
+	
 	def OnExit(self, event): # OnClose should supersede
 		self.Close(True) # also want to close all other windows
 

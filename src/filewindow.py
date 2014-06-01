@@ -42,7 +42,7 @@ class FileWindow(wx.Frame):
 		self.fileList = EditableListCtrl(self.panel, id=wx.ID_ANY, pos=(300,60), size=(300,200), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 		self.fileList.InsertColumn(col=0, heading="Filename")  #, format=wx.LIST_FORMAT_LEFT, width=-1)
 		self.fileList.InsertColumn(col=1, heading="Sound")
-		self.fileList.InsertColumn(col=1, heading="Contrast")
+		self.fileList.InsertColumn(col=2, heading="Contrast")
 		print (self.fileList.GetColumnCount())
 		
 		rows = [("guns", "dangerous"),

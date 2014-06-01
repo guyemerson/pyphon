@@ -37,14 +37,21 @@ class TrainingDialog(wx.Dialog):
 		print(language)
 		print(contrast)
 		# We store all information about test samples in the list self.items
-		cursor.execute("SELECT file, options, answer FROM samples WHERE language = ? AND contrast = ?", (language, contrast))
+		cursor.execute('''SELECT file, option_1, option_2, answer FROM
+			((SELECT option_1, option_2 FROM minimal_pairs
+				WHERE language = ? AND contrast = ?)
+			JOIN (SELECT file, answer FROM samples
+				WHERE language = ?)
+			ON option_1 = answer OR option_2 = answer)
+			''', (language, contrast, language))
+		#cursor.execute("SELECT file, options, answer FROM samples WHERE language = ? AND contrast = ?", (language, contrast))
 		self.items = list(cursor)
 		print(self.items)
 		
 		# Information about the current sample
 		self.file = None
 		self.answer = None
-		self.options = []
+		self.options = [None, None]
 		
 		# Stats for the user's performance
 		#self.sessionStats = {True: 0, False: 0} # need to develop this	
@@ -82,15 +89,26 @@ class TrainingDialog(wx.Dialog):
 		self.quack.Hide()
 		self.next.Hide()
 		
+		# Keyboard shortcuts
+		self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
 				
 		# Need to have a way to handle what happens when TrainingWindow closes, i.e.:
 		# 1. statistics are stored
-		# 2. MainWindow should return to normal, and you should be able to open a new TrainingWindow
 		
 		
 	# Below - BUTTONS!
 	# This is where the action happens
 	
+	def OnKeyUp(self, event):
+		print ("you pressed a key")
+		key = event.GetKeyCode()
+		keyCharacter = chr(key)
+		if keyCharacter == "1":
+			self.OnMoo(event)
+		elif keyCharacter == "2":
+			self.OnQuack(event)
+	# A space event for Next would also be nice
+	# These still need to be (a) idiot-proofed (so they only work at the right time), and (b) the "error bell" needs to be removed
 	def OnChoice(self, choice):
 		"""
 		Button press depending on choice (index in self.options)
@@ -121,9 +139,11 @@ class TrainingDialog(wx.Dialog):
 		
 	def OnNext(self, event):
 		# Take a random sample, and store it
-		filename, options, answer = random.choice(self.items)
+		filename, option_1, option_2, answer = random.choice(self.items)
+		#filename, options, answer = random.choice(self.items)
 		self.file = filepath(filename)
-		self.options = options.split('|', 1)
+		#self.options = options.split('|', 1)
+		self.options = [option_1, option_2]
 		self.answer = answer
 		print(self.file)
 		print(self.options)

@@ -34,13 +34,15 @@ class FileWindow(wx.Frame):
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
 	
+		self.filepath = wx.TextCtrl(self.panel, value="<I'm probably obsolete>", pos=(150,60), size=(300,-1))
 		self.browse = wx.Button(self.panel, label="Browse...")
 		
+
 		# first time using this object, seeing how it goes, may use ListBox object instead
 		self.fileList = EditableListCtrl(self.panel, id=wx.ID_ANY, pos=(300,60), size=(300,200), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 		self.fileList.InsertColumn(col=0, heading="Filename")  #, format=wx.LIST_FORMAT_LEFT, width=-1)
 		self.fileList.InsertColumn(col=1, heading="Sound")
-		self.fileList.InsertColumn(col=2, heading="Contrast")
+		self.fileList.InsertColumn(col=1, heading="Contrast")
 		print (self.fileList.GetColumnCount())
 		
 		rows = [("guns", "dangerous"),
@@ -57,11 +59,15 @@ class FileWindow(wx.Frame):
 		
 		#self.fileList.Append("hello")
 		#self.fileList.EnableAlternateRowColours(enable=True)
-		#self.fileList.EnableBellOnNoMatch(on=True)		
+		#self.fileList.EnableBellOnNoMatch(on=True)
+		
+		
+		
 		
 		
 		self.Bind(wx.EVT_BUTTON, self.OnBrowse, self.browse)
 		
+		self.grid.Add(self.filepath, pos=(1,1))
 		self.grid.Add(self.browse, pos=(1, 3))
 		self.grid.Add(self.fileList, pos=(3,1))
 		

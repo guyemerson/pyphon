@@ -123,7 +123,6 @@ class MainWindow(wx.Frame):
 	'''
 	def __init__(self, parent, title):
 		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,int(400*GOLDEN)))
-		self.Bind(wx.EVT_CLOSE, self.OnClose)
 
 		self.panel = MainWindowPanel(self)	
 
@@ -134,8 +133,7 @@ class MainWindow(wx.Frame):
 		filemenu = wx.Menu()
 		helpmenu = wx.Menu()
 		
-		menuView = filemenu.Append(wx.ID_ANY, "&View database", "view and edit the database")
-		menuAdd = filemenu.Append(wx.ID_ANY, "&Add", "Add sound files to the database")
+		menuDB = filemenu.Append(wx.ID_ANY, "Edit &Database", "view and edit the database")
 		filemenu.AppendSeparator()
 		menuOptions = filemenu.Append(wx.ID_ANY, "&Settings", "change settings")
 		menuStats = filemenu.Append(wx.ID_ANY, "View my &stats", "Statistics of past performance")
@@ -153,22 +151,21 @@ class MainWindow(wx.Frame):
 		self.SetMenuBar(menuBar)
 		
 		self.Bind(wx.EVT_MENU, self.OnOptions, menuOptions)
-		self.Bind(wx.EVT_MENU, self.OnFile, menuAdd)
-		self.Bind(wx.EVT_MENU, self.OnView, menuView)
+		self.Bind(wx.EVT_MENU, self.OnFile, menuDB)
 		self.Bind(wx.EVT_MENU, self.OnStats, menuStats)
 		self.Bind(wx.EVT_MENU, self.OnHelp, menuHelp)
 		self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
 		self.Bind(wx.EVT_MENU, self.OnClose, menuExit)
-	
+		self.Bind(wx.EVT_CLOSE, self.OnClose)
 
 	def OnFile(self, event):
 		'''Opens FileWindow.'''
 		secondWindow = filewindow.FileWindow(self, "File Submission")	
 		nb = wx.Notebook(secondWindow)
 		nb.AddPage(filewindow.MetadataPanel(nb), "Categories")
-		nb.AddPage(filewindow.DatabasePanel(nb), "Add files")
+		nb.AddPage(filewindow.AddDataPanel(nb), "Add sounds")
+		nb.AddPage(filewindow.EditDatabasePanel(nb), "Edit database")
 		secondWindow.Show()
-		#nb.Show()
 	
 	def OnStats(self, event):
 		'''Brings up stats. Used to be a pie chart using pylab, now a dialogue box.'''
@@ -181,9 +178,6 @@ class MainWindow(wx.Frame):
 		dlg = optionsdialog.OptionsDialog(self, "Settings", (200,200))
 		dlg.ShowModal()
 		dlg.Destroy()
-	
-	def OnView(self, event):
-		pass
 	
 	def OnHelp(self, event):
 		dlg = wx.MessageDialog(self, "Here is a message.\nEnjoy!", "Help for this program", wx.OK | wx.ICON_INFORMATION)
@@ -203,9 +197,6 @@ class MainWindow(wx.Frame):
 			f.write(str(self.panel.sessionStats))
 			f.write("\n")
 		self.Destroy()
-	
-	def OnExit(self, event): # OnClose should supersede
-		self.Close(True) # also want to close all other windows
 
 
 # provider = wx.SimpleHelpProvider()

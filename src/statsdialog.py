@@ -23,7 +23,6 @@ import wx
 class StatsDialog(wx.Dialog):
 	'''
 	A custom dialogue box which allows you to choose some settings.
-	You have NO IDEA how hard this was to create!!
 	'''
 	def __init__(self, frame, title, size):
 		wx.Dialog.__init__(self, parent=frame, title=title, size=size)

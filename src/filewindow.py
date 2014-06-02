@@ -2,6 +2,7 @@ import wx, os
 
 import wx.lib.mixins.listctrl  as  listmix
 
+panelSize = (800,600)
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
 	''' 
@@ -15,7 +16,7 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
 
 class MetadataPanel(wx.Panel):
 	def __init__(self, parent):
-		wx.Panel.__init__(self, parent, size=(600,400))
+		wx.Panel.__init__(self, parent, size=panelSize)
 		
 		self.SetBackgroundColour('#ededed')
 		
@@ -97,20 +98,26 @@ class MetadataPanel(wx.Panel):
 
 class DatabasePanel(wx.Panel):
 	def __init__(self, parent):
-		wx.Panel.__init__(self, parent, size=(600,400))
+		wx.Panel.__init__(self, parent, size=panelSize)
 		
 		self.SetBackgroundColour('#ededed')
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
-		
-		self.browse = wx.Button(self, label="Browse...")
+
+		self.selectAll = wx.Button(self, label="Select all")
+		self.deleteSelected = wx.Button(self, label="Delete selected")
+		self.save = wx.Button(self, label="Save changes")
+		self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
 
 		# first time using this object, seeing how it goes, may use ListBox object instead
-		self.fileList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(300,200), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-		self.fileList.InsertColumn(col=0, heading="Filename")  #, format=wx.LIST_FORMAT_LEFT, width=-1)
-		self.fileList.InsertColumn(col=1, heading="Sound")
-		self.fileList.InsertColumn(col=2, heading="Contrast")
+		self.fileList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(500,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+		self.fileList.InsertColumn(col=0, heading="File directory", width=180)
+		self.fileList.InsertColumn(col=1, heading="Filename")  #, format=wx.LIST_FORMAT_LEFT, width=-1)
+		self.fileList.InsertColumn(col=2, heading="Language")
+		self.fileList.InsertColumn(col=3, heading="Contrast")
+		self.fileList.InsertColumn(col=4, heading="Speaker")
 		print (self.fileList.GetColumnCount())
+		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnFileExample, self.fileList)
 		
 		rows = [("guns", "dangerous"),
 		("pyphon", "awesome"),
@@ -123,21 +130,43 @@ class DatabasePanel(wx.Panel):
 			self.fileList.SetStringItem(i, 2, "-")
 			i +=1
 		
-		
 		#self.fileList.Append("hello")
 		#self.fileList.EnableAlternateRowColours(enable=True)
 		#self.fileList.EnableBellOnNoMatch(on=True)
 		
-			
-		
-		self.Bind(wx.EVT_BUTTON, self.OnBrowse, self.browse)
-		
-		self.grid.Add(self.browse, pos=(1, 3))
-		self.grid.Add(self.fileList, pos=(3,1))
-		
+		self.grid.Add(self.fileList,  pos=(3,1), span=(3,3))
+		self.grid.Add(self.selectAll, pos=(6,1))
+		self.grid.Add(self.save, pos=(6,4))
+		self.grid.Add(self.deleteSelected, pos=(7,1))
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.SetSizerAndFit(self.mainSizer)
 		
+	def OnSelectAll(self, event):
+		print("You have pressed the 'Select All' button")
+		
+	def OnFileExample(self, event):
+		'''Plays the sound of that speaker saying a word, or a word in that language, or a pair of contrasting words for that contrast.'''
+		x = self.fileList.GetFocusedItem()
+		print x
+		playDir  = self.fileList.GetItemText(item=x, col=0)
+		playFile = self.fileList.GetItemText(item=x, col=1)
+		print ("You just asked for an example of %s in directory %s" % (playFile, playDir))
+		# Finish me, Guy! :)
+
+
+class AddDataPanel(DatabasePanel):
+	def __init__(self, parent):
+		DatabasePanel.__init__(self, parent=parent)
+		
+		self.browse = wx.Button(self, label="Browse...")
+		self.save.Label= "Add to database"
+		self.deleteSelected.Label = "Remove selected"
+		
+		self.Bind(wx.EVT_BUTTON, self.OnBrowse, self.browse)
+		self.Bind(wx.EVT_BUTTON, self.OnAdd, self.save)
+		
+		self.grid.Add(self.browse, pos=(1,4))
+
 	def OnBrowse(self, event):
 		print("Let's do some browsin'")
 		dlg = wx.FileDialog(self, "Choose a file", defaultDir=os.getcwd(), defaultFile="", wildcard="*.wav", style=wx.FD_MULTIPLE)
@@ -150,8 +179,22 @@ class DatabasePanel(wx.Panel):
 				self.fileList.SetStringItem(i, 2, "...")
 				i +=1
 		#	self.filepath.Value = dlg.GetDirectory() + '\\' + dlg.GetFilename()  -- need to retool for multiple files
+	
+	def OnAdd(self, event):
+		newStuff = []
+		dlg = wx.MessageDialog(self, "You intend to add these things to the database: \n%s\nDo you wish to continue?" % str(newStuff), "Confirmation", wx.OK | wx.CANCEL)
+		if dlg.ShowModal() == wx.ID_OK:
+			print ("You want to put some stuff in the database. We've taken note and will have customer services call you.")
+		dlg.Destroy()
 
+
+class EditDatabasePanel(DatabasePanel):
+	def __init__(self, parent):
+		DatabasePanel.__init__(self, parent=parent)
 		
+		self.search = wx.TextCtrl(self, value="<search>", size=(250, -1))
+		
+		self.grid.Add(self.search, pos=(1,1), span=(1,3))
 
 
 class FileWindow(wx.Frame):
@@ -160,5 +203,5 @@ class FileWindow(wx.Frame):
 	The MainWindow is this window's parent, so it should be possible to communicate in between these, to e.g. interdict multiple instances.
 	'''
 	def __init__(self, parent, title):
-		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(600,400))
+		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=panelSize)
 		

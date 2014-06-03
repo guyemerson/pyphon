@@ -162,7 +162,7 @@ class MainWindow(wx.Frame):
 		'''Opens FileWindow.'''
 		secondWindow = filewindow.FileWindow(self, "File Submission")	
 		nb = wx.Notebook(secondWindow)
-		nb.AddPage(filewindow.MetadataPanel(nb), "Categories")
+		nb.AddPage(filewindow.MetadataPanel(nb), "Language info")
 		nb.AddPage(filewindow.AddDataPanel(nb), "Add sounds")
 		nb.AddPage(filewindow.EditDatabasePanel(nb), "Edit database")
 		secondWindow.Show()

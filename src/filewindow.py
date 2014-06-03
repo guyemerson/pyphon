@@ -59,6 +59,79 @@ class MetadataPanel(wx.Panel):
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.SetSizerAndFit(self.mainSizer)
 		
+		# POPUP MENUS
+		# Terribly unwieldy code (should use e.g. iteration if poss) but it does the trick
+		# Thee popup menus, one for each box
+		self.languagePopupmenu = wx.Menu()
+		self.contrastPopupmenu = wx.Menu()
+		self.speakerPopupmenu = wx.Menu()
+		for text in "rename delete".split(): # all three popup menus have the same options, 'delete' and 'rename'
+			item1 = self.languagePopupmenu.Append(-1, text)
+			item2 = self.contrastPopupmenu.Append(-1, text)
+			item3 = self.speakerPopupmenu.Append(-1, text)
+			self.Bind(wx.EVT_MENU, self.OnLanguagePopupItemSelected, item1)
+			self.Bind(wx.EVT_MENU, self.OnContrastPopupItemSelected, item2)
+			self.Bind(wx.EVT_MENU, self.OnSpeakerPopupItemSelected, item3)
+		self.languages.Bind(wx.EVT_CONTEXT_MENU, self.OnShowLanguagePopup)
+		self.contrasts.Bind(wx.EVT_CONTEXT_MENU, self.OnShowContrastPopup)
+		self.speakers.Bind(wx.EVT_CONTEXT_MENU, self.OnShowSpeakerPopup)
+        
+        # Show popup menus
+	def OnShowLanguagePopup(self, event): 
+		pos = self.ScreenToClient(event.GetPosition())
+		self.PopupMenu(self.languagePopupmenu, pos)
+	def OnShowContrastPopup(self, event):
+		pos = self.ScreenToClient(event.GetPosition())
+		self.PopupMenu(self.contrastPopupmenu, pos)
+	def OnShowSpeakerPopup(self, event):
+		pos = self.ScreenToClient(event.GetPosition())
+		self.PopupMenu(self.speakerPopupmenu, pos)
+
+		# Show dialog box appropriate to listbox clicked
+	def OnLanguagePopupItemSelected(self, event):
+		self.OnPopupItemSelected(ref=0, item=self.languagePopupmenu.FindItemById(event.GetId()))
+	def OnContrastPopupItemSelected(self, event):
+		self.OnPopupItemSelected(ref=1, item=self.contrastPopupmenu.FindItemById(event.GetId()))
+	def OnSpeakerPopupItemSelected(self, event):
+		self.OnPopupItemSelected(ref=2, item=self.speakerPopupmenu.FindItemById(event.GetId()))
+	def OnPopupItemSelected(self, ref, item):
+		action = item.GetText()
+		self.PopupMenuDialog(ref, action)
+		
+		# Dialog box from popup menu
+	def PopupMenuDialog(self, ref, action):
+		whichBox = {0 : self.languages, 1 : self.contrasts, 2 : self.speakers}
+		theBox = whichBox[ref]
+		index = theBox.GetSelections()
+		sel = theBox.GetString(index[0])
+		print index, sel
+		if action == "delete":
+			dlg = wx.MessageDialog(self, "Really delete item '%s'?" % sel, "Delete item")
+			if dlg.ShowModal() == wx.ID_OK:
+				theBox.Delete(index[0])
+				del self.allLanguages[sel] # remove from dictionary used in OnSelectLanguage
+				self.contrasts.Clear(), self.speakers.Clear() # make blank, since now the corresponding language has been deleted
+			dlg.Destroy()
+		elif action == "rename":
+			dlg = wx.TextEntryDialog(self, "Enter the new name for item '%s' below." % sel, "Rename item")
+			if dlg.ShowModal() == wx.ID_OK:
+				entry = dlg.GetValue()
+				newlist = theBox.GetStrings() # all the listbox's current strings
+				# replace selected string with user-entered string
+				newlist = [entry if x==sel else x for x in newlist]
+				if theBox == self.languages:
+					# replace key in dict in OnSelectLanguage with user-entered string
+					self.allLanguages[entry] = self.allLanguages.pop(sel)
+				elif theBox == self.contrasts:
+					pass # should change the contrast
+				elif theBox == self.speakers:
+					pass # should change the speaker
+				# rewrite box contents
+				theBox.Clear()
+				theBox.InsertItems(newlist,0)
+			dlg.Destroy()
+	# END POPUP MENUS
+		
 	def OnAddLanguage(self, event): self.OnAdd(0)
 	def OnAddContrast(self, event): self.OnAdd(1)
 	def OnAddSpeaker(self, event):  self.OnAdd(2)

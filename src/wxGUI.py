@@ -9,7 +9,7 @@ dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
 datafile = os.path.join(dataDir, 'data_v2.db')
 userdata = os.path.join(dataDir, 'userdata.db')
 
-import trainingdialog, filewindow, statsdialog, optionsdialog
+import trainingdialog, filewindow, statsdialog, optionsdialog, metadatapanel
 
 GOLDEN = 0.61803398875
 
@@ -162,7 +162,7 @@ class MainWindow(wx.Frame):
 		'''Opens FileWindow.'''
 		secondWindow = filewindow.FileWindow(self, "File Submission")	
 		nb = wx.Notebook(secondWindow)
-		nb.AddPage(filewindow.MetadataPanel(nb), "Language info")
+		nb.AddPage(metadatapanel.MetadataPanel(nb), "Language info")
 		nb.AddPage(filewindow.AddDataPanel(nb), "Recordings")
 		nb.AddPage(filewindow.MinimalPairsPanel(nb), "Minimal pairs")
 		secondWindow.Show()

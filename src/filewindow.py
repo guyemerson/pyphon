@@ -100,6 +100,7 @@ class MetadataPanel(wx.Panel):
 		
 		# Dialog box from popup menu
 	def PopupMenuDialog(self, ref, action):
+		'''Brings up the dialog box appropriate to the selected option in the context menu.'''
 		whichBox = {0 : self.languages, 1 : self.contrasts, 2 : self.speakers}
 		theBox = whichBox[ref]
 		index = theBox.GetSelections()
@@ -131,6 +132,7 @@ class MetadataPanel(wx.Panel):
 				theBox.InsertItems(newlist,0)
 			dlg.Destroy()
 	# END POPUP MENUS
+		
 		
 	def OnAddLanguage(self, event): self.OnAdd(0)
 	def OnAddContrast(self, event): self.OnAdd(1)
@@ -169,6 +171,7 @@ class MetadataPanel(wx.Panel):
 		# Finish me, Guy! :)
 
 
+
 class DatabasePanel(wx.Panel):
 	def __init__(self, parent):
 		wx.Panel.__init__(self, parent, size=panelSize)
@@ -181,7 +184,9 @@ class DatabasePanel(wx.Panel):
 		self.deleteSelected = wx.Button(self, label="Delete selected")
 		self.save = wx.Button(self, label="Save changes")
 		self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
-
+		
+		self.search = wx.TextCtrl(self, value="<search>", size=(250, -1))
+		
 		# first time using this object, seeing how it goes, may use ListBox object instead
 		self.fileList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(500,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 		self.fileList.InsertColumn(col=0, heading="File directory", width=180)
@@ -207,6 +212,7 @@ class DatabasePanel(wx.Panel):
 		#self.fileList.EnableAlternateRowColours(enable=True)
 		#self.fileList.EnableBellOnNoMatch(on=True)
 		
+		self.grid.Add(self.search, pos=(1,1), span=(1,3))
 		self.grid.Add(self.fileList,  pos=(3,1), span=(3,3))
 		self.grid.Add(self.selectAll, pos=(6,1))
 		self.grid.Add(self.save, pos=(6,4))
@@ -225,6 +231,7 @@ class DatabasePanel(wx.Panel):
 		playFile = self.fileList.GetItemText(item=x, col=1)
 		print ("You just asked for an example of %s in directory %s" % (playFile, playDir))
 		# Finish me, Guy! :)
+
 
 
 class AddDataPanel(DatabasePanel):
@@ -261,13 +268,63 @@ class AddDataPanel(DatabasePanel):
 		dlg.Destroy()
 
 
-class EditDatabasePanel(DatabasePanel):
+class AddPairsDialog(wx.Dialog):
+	def __init__(self, parentPanel, title, size):
+		wx.Dialog.__init__(self, parent=parentPanel, title=title, size=size)
+		
+		self.size = size
+		self.parent = parentPanel
+		
+		self.panel = wx.Panel(self, size=self.size)
+		self.panel.SetBackgroundColour('#ededed')
+		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+		self.grid = wx.GridBagSizer(hgap=20, vgap=10)
+		
+		self.firstWord = wx.TextCtrl(self.panel, value="", size=(60,-1))
+		self.firstWord.SetFocus()
+		self.secondWord = wx.TextCtrl(self.panel, value="", size=(60,-1))
+		self.addPairButton = wx.Button(self.panel, label="Add pair")
+		
+		self.Bind(wx.EVT_BUTTON, self.OnAddPair, self.addPairButton)
+		self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+		
+		self.grid.Add(self.firstWord, pos=(1,1))
+		self.grid.Add(self.secondWord, pos=(1,2))
+		self.grid.Add(self.addPairButton, pos=(2,1))
+		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
+		self.panel.SetSizerAndFit(self.mainSizer)
+
+	def AddPair(self):
+		self.parent.fileList.InsertStringItem(0, self.firstWord.Value)
+		self.parent.fileList.SetStringItem(0, 1, self.secondWord.Value)
+	def OnKeyDown(self, event): 
+	# at the moment this only works when the panel is the object that is focussed (i.e. just clicked on/currently "active")
+		'''Save the current changes when you press the 'enter' key.'''
+		print ("you pressed a key")
+		key = event.GetKeyCode()
+		if key == wx.WXK_RETURN:
+			self.AddPair()
+	def OnAddPair(self, event):
+		self.AddPair()
+
+
+class MinimalPairsPanel(DatabasePanel):
 	def __init__(self, parent):
 		DatabasePanel.__init__(self, parent=parent)
 		
-		self.search = wx.TextCtrl(self, value="<search>", size=(250, -1))
+		self.addPairs = wx.Button(self, label="Add pairs...")
+		self.Bind(wx.EVT_BUTTON, self.OnAddPairs, self.addPairs)
 		
-		self.grid.Add(self.search, pos=(1,1), span=(1,3))
+		self.SetBackgroundColour('#ededed')
+		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+		self.grid = wx.GridBagSizer(hgap=20, vgap=10)	
+		
+		self.grid.Add(self.addPairs, pos=(0,0))
+
+	def OnAddPairs(self, event):
+		dlg = AddPairsDialog(self, "Add Pairs", size=(200,200))
+		dlg.ShowModal()
+		dlg.Destroy()
 
 
 class FileWindow(wx.Frame):

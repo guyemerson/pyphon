@@ -17,12 +17,6 @@ def filepath(text):
 class TrainingDialog(wx.Dialog):
 	'''
 	This is the dialogue box where training happens.
-	
-	The box contains:
-	- a panel object (internally coded, below) for organising and positioning widgets (buttons, text etc.)
-	
-	The panel contains:
-	- The buttons and their methods
 	'''
 	def __init__(self, parentPanel, title, size, cursor, language, contrast):
 		wx.Dialog.__init__(self, parent=parentPanel, title=title, size=size)
@@ -89,7 +83,10 @@ class TrainingDialog(wx.Dialog):
 		self.next.Hide()
 		
 		# Keyboard shortcuts
-		self.panel.Bind(wx.EVT_KEY_UP, self.OnKeyUp)
+		self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+		self.pendingAnswer = False 
+		# This variable is needed to stop the user from keeping on getting "correct answers" by pressing the same button many times.
+		
 				
 		# Need to have a way to handle what happens when TrainingWindow closes, i.e.:
 		# 1. statistics are stored
@@ -98,20 +95,22 @@ class TrainingDialog(wx.Dialog):
 	# Below - BUTTONS!
 	# This is where the action happens
 	
-	def OnKeyUp(self, event):
+	def OnKeyDown(self, event):
 		print ("you pressed a key")
 		key = event.GetKeyCode()
 		keyCharacter = chr(key)
 		if keyCharacter == "1":
-			self.OnMoo(event)
+			self.OnChoice(0)
 		elif keyCharacter == "2":
-			self.OnQuack(event)
+			self.OnChoice(1)
+		self.pendingAnswer = False
 	# A space event for Next would also be nice
 	# These still need to be (a) idiot-proofed (so they only work at the right time), and (b) the "error bell" needs to be removed
 	def OnChoice(self, choice):
 		"""
 		Button press depending on choice (index in self.options)
 		"""
+		if self.pendingAnswer == False: return # stops people from being able to answer the same question multiple times with button presses
 		print(self.options[choice])
 		# Compare user's choice with the correct answer
 		if self.options[choice] == self.answer:
@@ -137,6 +136,8 @@ class TrainingDialog(wx.Dialog):
 		
 		
 	def OnNext(self, event):
+		# allow the user to answer
+		self.pendingAnswer = True
 		# Take a random sample, and store it
 		filename, option_1, option_2, answer = random.choice(self.items)
 		#filename, options, answer = random.choice(self.items)

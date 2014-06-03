@@ -163,8 +163,8 @@ class MainWindow(wx.Frame):
 		secondWindow = filewindow.FileWindow(self, "File Submission")	
 		nb = wx.Notebook(secondWindow)
 		nb.AddPage(filewindow.MetadataPanel(nb), "Language info")
-		nb.AddPage(filewindow.AddDataPanel(nb), "Add sounds")
-		nb.AddPage(filewindow.EditDatabasePanel(nb), "Edit database")
+		nb.AddPage(filewindow.AddDataPanel(nb), "Recordings")
+		nb.AddPage(filewindow.MinimalPairsPanel(nb), "Minimal pairs")
 		secondWindow.Show()
 	
 	def OnStats(self, event):

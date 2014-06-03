@@ -31,24 +31,6 @@ class DatabasePanel(wx.Panel):
 		
 		# first time using this object, seeing how it goes, may use ListBox object instead
 		self.fileList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(500,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-		self.fileList.InsertColumn(col=0, heading="File directory", width=180)
-		self.fileList.InsertColumn(col=1, heading="Filename")  #, format=wx.LIST_FORMAT_LEFT, width=-1)
-		self.fileList.InsertColumn(col=2, heading="Language")
-		self.fileList.InsertColumn(col=3, heading="Contrast")
-		self.fileList.InsertColumn(col=4, heading="Speaker")
-		print (self.fileList.GetColumnCount())
-		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnFileExample, self.fileList)
-		
-		rows = [("guns", "dangerous"),
-		("pyphon", "awesome"),
-		("pasta", "tasty")]
-		
-		i = 0
-		for row in rows:
-			self.fileList.InsertStringItem(i, row[0])
-			self.fileList.SetStringItem(i, 1, row[1])
-			self.fileList.SetStringItem(i, 2, "-")
-			i +=1
 		
 		#self.fileList.Append("hello")
 		#self.fileList.EnableAlternateRowColours(enable=True)
@@ -64,15 +46,6 @@ class DatabasePanel(wx.Panel):
 		
 	def OnSelectAll(self, event):
 		print("You have pressed the 'Select All' button")
-		
-	def OnFileExample(self, event):
-		'''Plays the sound of that speaker saying a word, or a word in that language, or a pair of contrasting words for that contrast.'''
-		x = self.fileList.GetFocusedItem()
-		print x
-		playDir  = self.fileList.GetItemText(item=x, col=0)
-		playFile = self.fileList.GetItemText(item=x, col=1)
-		print ("You just asked for an example of %s in directory %s" % (playFile, playDir))
-		# Finish me, Guy! :)
 
 
 
@@ -84,10 +57,36 @@ class AddDataPanel(DatabasePanel):
 		self.save.Label= "Add to database"
 		self.deleteSelected.Label = "Remove selected"
 		
+		self.fileList.InsertColumn(col=0, heading="Filename", width=180)
+		self.fileList.InsertColumn(col=1, heading="Answer")  #, format=wx.LIST_FORMAT_LEFT, width=-1)
+		self.fileList.InsertColumn(col=2, heading="Language")
+		self.fileList.InsertColumn(col=3, heading="Speaker")
+
+		rows = [("guns", "dangerous"),
+		("pyphon", "awesome"),
+		("pasta", "tasty")]
+		
+		i = 0
+		for row in rows:
+			self.fileList.InsertStringItem(i, row[0])
+			self.fileList.SetStringItem(i, 1, row[1])
+			self.fileList.SetStringItem(i, 2, "-")
+			i +=1
+		
 		self.Bind(wx.EVT_BUTTON, self.OnBrowse, self.browse)
 		self.Bind(wx.EVT_BUTTON, self.OnAdd, self.save)
+		# play file on pressing enter when row highlighted
+		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnFileExample, self.fileList)
 		
 		self.grid.Add(self.browse, pos=(1,4))
+		
+	def OnFileExample(self, event):
+		'''Plays the sound file from the selected row.'''
+		x = self.fileList.GetFocusedItem()
+		print x
+		playDir  = self.fileList.GetItemText(item=x, col=0)
+		print ("You just asked for an example of %s" % playDir)
+		# Finish me, Guy! :)
 
 	def OnBrowse(self, event):
 		print("Let's do some browsin'")
@@ -122,6 +121,8 @@ class AddPairsDialog(wx.Dialog):
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 		self.grid = wx.GridBagSizer(hgap=20, vgap=10)
 		
+		self.chooseLanguage = wx.ComboBox(self.panel, size=(140,-1), choices=["-", "Catalan", "Burmese", "Svan"], style=wx.CB_READONLY)
+		self.chooseContrast = wx.ComboBox(self, size=(95,-1), choices=["-", "bla-bli", "wo-we"], style=wx.CB_READONLY)
 		self.firstWord = wx.TextCtrl(self.panel, value="", size=(60,-1))
 		self.firstWord.SetFocus()
 		self.secondWord = wx.TextCtrl(self.panel, value="", size=(60,-1))
@@ -129,16 +130,37 @@ class AddPairsDialog(wx.Dialog):
 		
 		self.Bind(wx.EVT_BUTTON, self.OnAddPair, self.addPairButton)
 		self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+		self.Bind(wx.EVT_COMBOBOX, self.OnChooseLanguage, self.chooseLanguage)
+		self.Bind(wx.EVT_COMBOBOX, self.OnChooseContrast, self.chooseContrast)
 		
-		self.grid.Add(self.firstWord, pos=(1,1))
-		self.grid.Add(self.secondWord, pos=(1,2))
-		self.grid.Add(self.addPairButton, pos=(2,1))
+		self.grid.Add(self.chooseLanguage, pos=(1,1))
+		self.grid.Add(self.chooseContrast, pos=(1,2))
+		self.grid.Add(self.firstWord, pos=(2,1))
+		self.grid.Add(self.secondWord, pos=(2,2))
+		self.grid.Add(self.addPairButton, pos=(3,1))
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.panel.SetSizerAndFit(self.mainSizer)
 
+	def OnChooseLanguage(self, event):
+		print("you chose a language")
+	def OnChooseContrast(self, event):
+		print("you chose a contrast")
 	def AddPair(self):
-		self.parent.fileList.InsertStringItem(0, self.firstWord.Value)
-		self.parent.fileList.SetStringItem(0, 1, self.secondWord.Value)
+		language, contrast = self.chooseLanguage.Value, self.chooseContrast.Value
+		word1, word2 = self.firstWord.Value, self.secondWord.Value
+		if "-" in [language, contrast]:
+			dlg = wx.MessageDialog(self.panel, "You have not specified langauge or contrast.\nPlease specify these and try again.", "Error", wx.OK | wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+		elif "" in [word1, word2]:
+			dlg = wx.MessageDialog(self.panel, "You have not specified both words in the pair.\nPlease specify these and try again.", "Error", wx.OK | wx.ICON_ERROR)
+			dlg.ShowModal()
+			dlg.Destroy()
+		else:
+			self.parent.fileList.InsertStringItem(0, self.chooseLanguage.Value)
+			self.parent.fileList.SetStringItem(0, 1, self.chooseContrast.Value)
+			self.parent.fileList.SetStringItem(0, 2, self.firstWord.Value)
+			self.parent.fileList.SetStringItem(0, 3, self.secondWord.Value)
 	def OnKeyDown(self, event): 
 	# at the moment this only works when the panel is the object that is focussed (i.e. just clicked on/currently "active")
 		'''Save the current changes when you press the 'enter' key.'''
@@ -161,10 +183,26 @@ class MinimalPairsPanel(DatabasePanel):
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 		self.grid = wx.GridBagSizer(hgap=20, vgap=10)	
 		
-		self.grid.Add(self.addPairs, pos=(0,0))
+		self.fileList.InsertColumn(col=0, heading="Language", width=100)
+		self.fileList.InsertColumn(col=1, heading="Contrast") 
+		self.fileList.InsertColumn(col=2, heading="Option 1")
+		self.fileList.InsertColumn(col=3, heading="Option 2")
+
+		rows = [("guns", "dangerous"),
+		("pyphon", "awesome"),
+		("pasta", "tasty")]
+		
+		i = 0
+		for row in rows:
+			self.fileList.InsertStringItem(i, row[0])
+			self.fileList.SetStringItem(i, 1, row[1])
+			self.fileList.SetStringItem(i, 2, "-")
+			i +=1
+		
+		self.grid.Add(self.addPairs, pos=(1,4))
 
 	def OnAddPairs(self, event):
-		dlg = AddPairsDialog(self, "Add Pairs", size=(200,200))
+		dlg = AddPairsDialog(self, "Add Pairs", size=(300,200))
 		dlg.ShowModal()
 		dlg.Destroy()
 

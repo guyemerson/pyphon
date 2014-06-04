@@ -143,7 +143,7 @@ class MetadataPanel(wx.Panel):
 					self.chosenLanguage = entry
 					self.cur.execute("UPDATE language_set SET language = ? WHERE language = ?", (entry, selection))
 				else:
-					self.dicts[i][self.chosenLanguage][index] = entry
+					self.data[i][self.chosenLanguage][index] = entry
 					self.cur.execute("UPDATE {0} SET {1} = ? WHERE language = ? AND {1} = ?".format(self.tables[i], self.names[i]), (entry, self.chosenLanguage, selection))
 				
 				# rewrite box contents

@@ -1,17 +1,7 @@
 # This module contains the TrainingDialog wx GUI object and supporting functions only.
 
-import wx, random, os
-
-srcDir = os.path.expanduser(os.getcwd())
-dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
-	
-def filepath(text):
-	"""	If text contains no slashes, add the default data directory	"""
-	directory, filename = os.path.split(text)
-	if directory == "":
-		return os.path.join(dataDir, filename)
-	else:
-		return text
+import wx, random
+import pyphon
 
 
 class TrainingDialog(wx.Dialog):
@@ -141,7 +131,7 @@ class TrainingDialog(wx.Dialog):
 		# Take a random sample, and store it
 		filename, item_1, item_2, answer = random.choice(self.items)
 		#filename, options, answer = random.choice(self.items)
-		self.file = filepath(filename)
+		self.file = pyphon.filepath(filename)
 		#self.options = options.split('|', 1)
 		self.options = [item_1, item_2]
 		self.answer = answer

@@ -23,7 +23,7 @@ class MetadataPanel(wx.Panel):
 		self.speakers =  wx.ListBox(self, -1)
 		self.boxes = [self.languages, self.contrasts, self.speakers]
 		
-		self.addLanguage = wx.Button(self, label="Add langauge")
+		self.addLanguage = wx.Button(self, label="Add language")
 		self.addContrast = wx.Button(self, label="Add contrast")
 		self.addSpeaker  = wx.Button(self, label="Add speaker")
 
@@ -55,6 +55,9 @@ class MetadataPanel(wx.Panel):
 			self.allSpeakers[language].append(speaker)
 		for language in self.allLanguages:
 			self.allSpeakers[language].sort()
+		
+		self.data = [self.allLanguages, self.allContrasts, self.allSpeakers]
+		self.tables = ["language_set", "contrast_set", "speaker_set"]
 		
 		self.cur = cursor  # We will need the cursor later, when saving changes
 		
@@ -104,30 +107,45 @@ class MetadataPanel(wx.Panel):
 	def PopupMenuDialog(self, i, action):
 		'''Brings up the dialog box appropriate to the selected option in the context menu.'''
 		theBox = self.boxes[i]
-		index = theBox.GetSelections()
-		sel = theBox.GetString(index[0])
-		print index, sel
+		index = theBox.GetSelections()[0]
+		selection = theBox.GetString(index)
+		print index, selection
+		
 		if action == "delete":
-			dlg = wx.MessageDialog(self, "Really delete item '{}'?".format(sel), "Delete item")
+			dlg = wx.MessageDialog(self, "Really delete item '{}'?".format(selection), "Delete item")
 			if dlg.ShowModal() == wx.ID_OK:
-				theBox.Delete(index[0])
-				del self.allLanguages[sel] # remove from dictionary used in OnSelectLanguage
-				self.contrasts.Clear(), self.speakers.Clear() # make blank, since now the corresponding language has been deleted
+				theBox.Delete(index)
+				# Remove from python dictionary and from database:
+				if i == 0:
+					del self.allLanguages[index]
+					del self.allContrasts[selection]
+					del self.allSpeakers[selection]
+					self.cur.execute("DELETE FROM language_set WHERE language = ?", (selection,))
+					self.contrasts.Clear()
+					self.speakers.Clear()
+				else:
+					del self.data[i][self.chosenLanguage][index]
+					self.cur.execute("DELETE FROM {} WHERE language = ? AND {} = ?".format(self.tables[i], self.names[i]), (self.chosenLanguage, selection))
 			dlg.Destroy()
+		
 		elif action == "rename":
-			dlg = wx.TextEntryDialog(self, "Enter the new name for item '{}' below.".format(sel), "Rename item")
+			dlg = wx.TextEntryDialog(self, "Enter the new name for item '{}' below.".format(selection), "Rename item")
 			if dlg.ShowModal() == wx.ID_OK:
 				entry = dlg.GetValue()
 				newlist = theBox.GetStrings() # all the listbox's current strings
 				# replace selected string with user-entered string
-				newlist = [entry if x==sel else x for x in newlist]
-				if theBox == self.languages:
-					# replace key in dict in OnSelectLanguage with user-entered string
-					self.allLanguages[entry] = self.allLanguages.pop(sel)
-				elif theBox == self.contrasts:
-					pass # should change the contrast
-				elif theBox == self.speakers:
-					pass # should change the speaker
+				newlist = [entry if x == selection else x for x in newlist]
+				
+				if i == 0:
+					self.allLanguages[index] = entry
+					self.allContrasts[entry] = self.allContrasts.pop(selection)
+					self.allSpeakers[entry]  = self.allSpeakers.pop(selection)
+					self.chosenLanguage = entry
+					self.cur.execute("UPDATE language_set SET language = ? WHERE language = ?", (entry, selection))
+				else:
+					self.dicts[i][self.chosenLanguage][index] = entry
+					self.cur.execute("UPDATE {0} SET {1} = ? WHERE language = ? AND {1} = ?".format(self.tables[i], self.names[i]), (entry, self.chosenLanguage, selection))
+				
 				# rewrite box contents
 				theBox.Clear()
 				theBox.InsertItems(newlist,0)
@@ -146,26 +164,33 @@ class MetadataPanel(wx.Panel):
 		text = wx.GetTextFromUser(message=("Enter a new {}".format(variable)), caption=("New {}".format(variable)), default_value="", parent=None)
 		if text != "":
 			box.Append(text)
+			if i == 0:
+				self.allLanguages.append(text)
+				self.allContrasts[text] = []
+				self.allSpeakers[text] = []
+				self.cur.execute("INSERT INTO language_set VALUES (?)", (text,))
+			else:
+				self.data[i][self.chosenLanguage].append(text)
+				self.cur.execute("INSERT INTO {} VALUES (?, ?)".format(self.tables[i]), (self.chosenLanguage, text))
 	
 	def OnSelectLanguage(self, event):
 		'''Gets speakers and contrasts for that language.'''
 		index = event.GetSelection()
-		language = self.languages.GetString(index)
-		print (language)
+		self.chosenLanguage = self.languages.GetString(index)
+		print (self.chosenLanguage)
 		self.contrasts.Clear()
 		self.speakers.Clear()
-		self.contrasts.SetItems(self.allContrasts[language])
-		self.speakers.SetItems(self.allSpeakers[language])
+		self.contrasts.SetItems(self.allContrasts[self.chosenLanguage])
+		self.speakers.SetItems(self.allSpeakers[self.chosenLanguage])
 		#event.Skip()
 	
 	def OnLanguageExample(self, event): self.OnExample(0, event.GetSelection())
 	def OnContrastExample(self, event): self.OnExample(1, event.GetSelection())
 	def OnSpeakerExample(self, event):  self.OnExample(2, event.GetSelection())
 	
-	def OnExample(self, ref, index):
+	def OnExample(self, i, index):
 		'''Plays the sound of that speaker saying a word, or a word in that language, or a pair of contrasting words for that contrast.'''
-		whichBox = {0 : self.languages, 1 : self.contrasts, 2 : self.speakers}
-		theBox = whichBox[ref]
+		theBox = self.boxes[i]
 		play = theBox.GetString(index)
 		print ("You just asked for an example of {}".format(play))
 		# Finish me, Guy! :)

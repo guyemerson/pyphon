@@ -191,12 +191,10 @@ class MinimalPairsPanel(DatabasePanel):
 		("pyphon", "awesome"),
 		("pasta", "tasty")]
 		
-		i = 0
-		for row in rows:
+		for i, row in enumerate(rows):
 			self.fileList.InsertStringItem(i, row[0])
 			self.fileList.SetStringItem(i, 1, row[1])
 			self.fileList.SetStringItem(i, 2, "-")
-			i +=1
 		
 		self.grid.Add(self.addPairs, pos=(1,4))
 

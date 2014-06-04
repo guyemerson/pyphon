@@ -1,13 +1,8 @@
 #!/usr/bin/env python2
 
 from __future__ import division
-import wx, os, sqlite3, datetime
+import wx, datetime
 from copy import copy
-
-srcDir = os.getcwd()
-dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
-datafile = os.path.join(dataDir, 'data_v3.db')
-userdata = os.path.join(dataDir, 'userdata.db')
 
 import trainingdialog, filewindow, statsdialog, optionsdialog, metadatapanel
 
@@ -23,19 +18,18 @@ class MainWindowPanel(wx.Panel):
 	- a GridBagSizer for organising the widgets in the panel
 	- a BoxSizer as a "main sizer", in which the GridBagSizer fits
 	'''
-	def __init__(self, parent):
+	def __init__(self, parent, cursor):
+		"""
+		cursor - SQLite3 cursor object
+		"""
 		wx.Panel.__init__(self, parent, size=(400,int(400*GOLDEN)))
 		
 		self.SetBackgroundColour("#ededed")
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 
 		# DATABASE CODE
-
-		self.allowProfanity = False  # this should actually read from userdata.db to determine the current settings
-		# Then swear words should be kept or removed as appropriate
 		
-		with sqlite3.connect(datafile) as data:
-			self.cur = data.cursor()
+		self.cur = cursor
 		self.cur.execute("SELECT DISTINCT language FROM contrast_set")
 		self.all_languages = sorted(x[0] for x in self.cur)  # cur returns a list of tuples
 		print (self.all_languages)
@@ -51,8 +45,6 @@ class MainWindowPanel(wx.Panel):
 		
 		self.chooseLanguage = wx.ComboBox(self, size=(140,-1), choices=["-"] + self.all_languages, style=wx.CB_READONLY)
 		self.chooseContrast = wx.ComboBox(self, size=(95,-1), choices=["-"], style=wx.CB_READONLY)
-		# The following line will be removed eventually
-		self.chooseLanguage.Append("Polish")
 		
 		self.train = wx.Button(self, label="Train!")
 		self.Bind(wx.EVT_BUTTON, self.OnTrain, self.train)
@@ -121,11 +113,14 @@ class MainWindow(wx.Frame):
 	- menu options and their methods
 	- a "status bar" (the little info strip at the bottom)
 	'''
-	def __init__(self, parent, title):
+	def __init__(self, parent, title, cursor):
+		"""
+		cursor - SQLite3 cursor object
+		"""
 		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,int(400*GOLDEN)))
-
-		self.panel = MainWindowPanel(self)	
-
+		
+		self.panel = MainWindowPanel(self, cursor)
+		
 		# MENU CODE
 		
 		self.CreateStatusBar()   # would be nice to have Golden Ratio proportions
@@ -191,22 +186,22 @@ class MainWindow(wx.Frame):
 	
 	def OnClose(self, event):
 		# Here do all the things you want to do when closing, like saving data, and asking the user questions using dialog boxes
+		"""
 		with open(userdata, 'a') as f:
 			print (str(self.panel.sessionStats))
 			f.write(str(datetime.date.today()))
 			f.write(str(self.panel.sessionStats))
 			f.write("\n")
+		"""
 		self.Destroy()
 
 
+
+#app = wx.App(False)
+#frame = MainWindow(None, title="High Variability Phonetic Training software", cursor=cur)
 # provider = wx.SimpleHelpProvider()
 # wx.HelpProvider_Set(provider)
-
-app = wx.App(False)
-frame = MainWindow(None, title="High Variability Phonetic Training software")
-
+#frame.Show()
+#app.MainLoop()
 # nb = wx.Notebook(frame)
-# nb.AddPage(whatever_panel_you_made(nb), "whatever panel name")
-
-frame.Show()
-app.MainLoop()
+# nb.AddPage(whatever_panel_you_made(nb), "whatever panel name")"""

@@ -31,12 +31,12 @@ class TrainingDialog(wx.Dialog):
 		print(language)
 		print(contrast)
 		# We store all information about test samples in the list self.items
-		cursor.execute('''SELECT file, option_1, option_2, answer FROM
-			((SELECT option_1, option_2 FROM minimal_pairs
+		cursor.execute('''SELECT file, item_1, item_2, answer FROM
+			((SELECT item_1, item_2 FROM minimal_pairs
 				WHERE language = ? AND contrast = ?)
-			JOIN (SELECT file, answer FROM samples
+			JOIN (SELECT file, answer FROM recordings
 				WHERE language = ?)
-			ON option_1 = answer OR option_2 = answer)
+			ON item_1 = answer OR item_2 = answer)
 			''', (language, contrast, language))
 		self.items = list(cursor)
 		print(self.items)
@@ -139,11 +139,11 @@ class TrainingDialog(wx.Dialog):
 		# allow the user to answer
 		self.pendingAnswer = True
 		# Take a random sample, and store it
-		filename, option_1, option_2, answer = random.choice(self.items)
+		filename, item_1, item_2, answer = random.choice(self.items)
 		#filename, options, answer = random.choice(self.items)
 		self.file = filepath(filename)
 		#self.options = options.split('|', 1)
-		self.options = [option_1, option_2]
+		self.options = [item_1, item_2]
 		self.answer = answer
 		print(self.file)
 		print(self.options)

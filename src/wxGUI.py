@@ -6,7 +6,7 @@ from copy import copy
 
 srcDir = os.getcwd()
 dataDir = os.path.join(os.path.split(srcDir)[0], 'data')
-datafile = os.path.join(dataDir, 'data_v2.db')
+datafile = os.path.join(dataDir, 'data_v3.db')
 userdata = os.path.join(dataDir, 'userdata.db')
 
 import trainingdialog, filewindow, statsdialog, optionsdialog, metadatapanel
@@ -87,8 +87,8 @@ class MainWindowPanel(wx.Panel):
 		try:
 			trainedTrue = self.sessionStats[True]  - initStats[True]
 			trainedTotal = trainedTrue + self.sessionStats[False] - initStats[False]
-			percent = 100 * trainedTrue / trainedTotal
-			self.sessionFeedback.SetLabel("In your last session you trained a total of %d reps \nand got %.0f%% correct." % (trainedTotal, percent))
+			proportion = trainedTrue / trainedTotal
+			self.sessionFeedback.SetLabel("In your last session you trained a total of {} reps \nand got {:.0%} correct.".format(trainedTotal, proportion))
 		except ZeroDivisionError:
 			print ("zero reps - no feedback")
 			
@@ -162,9 +162,9 @@ class MainWindow(wx.Frame):
 		'''Opens FileWindow.'''
 		secondWindow = filewindow.FileWindow(self, "File Submission")	
 		nb = wx.Notebook(secondWindow)
-		nb.AddPage(metadatapanel.MetadataPanel(nb), "Language info")
-		nb.AddPage(filewindow.AddDataPanel(nb), "Recordings")
-		nb.AddPage(filewindow.MinimalPairsPanel(nb), "Minimal pairs")
+		nb.AddPage(metadatapanel.MetadataPanel(nb, self.panel.cur), "Language info")
+		nb.AddPage(filewindow.AddDataPanel(nb, self.panel.cur), "Recordings")
+		nb.AddPage(filewindow.MinimalPairsPanel(nb, self.panel.cur), "Minimal pairs")
 		secondWindow.Show()
 	
 	def OnStats(self, event):

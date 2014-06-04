@@ -2,7 +2,7 @@ import wx, os
 
 import wx.lib.mixins.listctrl  as  listmix
 
-panelSize = (800,600)
+PANEL_SIZE = (800,600)
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
 	''' 
@@ -15,8 +15,8 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
 
 
 class DatabasePanel(wx.Panel):
-	def __init__(self, parent):
-		wx.Panel.__init__(self, parent, size=panelSize)
+	def __init__(self, parent, cursor):
+		wx.Panel.__init__(self, parent, size=PANEL_SIZE)
 		
 		self.SetBackgroundColour('#ededed')
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -50,8 +50,8 @@ class DatabasePanel(wx.Panel):
 
 
 class AddDataPanel(DatabasePanel):
-	def __init__(self, parent):
-		DatabasePanel.__init__(self, parent=parent)
+	def __init__(self, parent, cursor):
+		DatabasePanel.__init__(self, parent=parent, cursor=cursor)
 		
 		self.browse = wx.Button(self, label="Browse...")
 		self.save.Label= "Add to database"
@@ -85,7 +85,7 @@ class AddDataPanel(DatabasePanel):
 		x = self.fileList.GetFocusedItem()
 		print x
 		playDir  = self.fileList.GetItemText(item=x, col=0)
-		print ("You just asked for an example of %s" % playDir)
+		print ("You just asked for an example of {}".format(playDir))
 		# Finish me, Guy! :)
 
 	def OnBrowse(self, event):
@@ -94,8 +94,8 @@ class AddDataPanel(DatabasePanel):
 		if dlg.ShowModal() == wx.ID_OK:
 			print (dlg.GetFilenames())
 			i = 0
-			for file in dlg.GetFilenames():
-				self.fileList.InsertStringItem(i, file)
+			for filename in dlg.GetFilenames():
+				self.fileList.InsertStringItem(i, filename)
 				self.fileList.SetStringItem(i, 1, "<insert sound>")
 				self.fileList.SetStringItem(i, 2, "...")
 				i +=1
@@ -103,7 +103,7 @@ class AddDataPanel(DatabasePanel):
 	
 	def OnAdd(self, event):
 		newStuff = []
-		dlg = wx.MessageDialog(self, "You intend to add these things to the database: \n%s\nDo you wish to continue?" % str(newStuff), "Confirmation", wx.OK | wx.CANCEL)
+		dlg = wx.MessageDialog(self, "You intend to add these things to the database: \n{}\nDo you wish to continue?".format(newStuff), "Confirmation", wx.OK | wx.CANCEL)
 		if dlg.ShowModal() == wx.ID_OK:
 			print ("You want to put some stuff in the database. We've taken note and will have customer services call you.")
 		dlg.Destroy()
@@ -173,15 +173,14 @@ class AddPairsDialog(wx.Dialog):
 
 
 class MinimalPairsPanel(DatabasePanel):
-	def __init__(self, parent):
-		DatabasePanel.__init__(self, parent=parent)
+	def __init__(self, parent, cursor):
+		DatabasePanel.__init__(self, parent=parent, cursor=cursor)
 		
 		self.addPairs = wx.Button(self, label="Add pairs...")
 		self.Bind(wx.EVT_BUTTON, self.OnAddPairs, self.addPairs)
 		
 		self.SetBackgroundColour('#ededed')
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-		self.grid = wx.GridBagSizer(hgap=20, vgap=10)	
 		
 		self.fileList.InsertColumn(col=0, heading="Language", width=100)
 		self.fileList.InsertColumn(col=1, heading="Contrast") 
@@ -213,5 +212,5 @@ class FileWindow(wx.Frame):
 	The MainWindow is this window's parent, so it should be possible to communicate in between these, to e.g. interdict multiple instances.
 	'''
 	def __init__(self, parent, title):
-		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=panelSize)
+		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=PANEL_SIZE)
 		

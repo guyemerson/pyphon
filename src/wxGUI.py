@@ -29,9 +29,9 @@ class MainWindowPanel(wx.Panel):
 
 		# DATABASE CODE
 		
-		self.cur = cursor
-		self.cur.execute("SELECT DISTINCT language FROM contrast_set")
-		self.all_languages = sorted(x[0] for x in self.cur)  # cur returns a list of tuples
+		self.cursor = cursor
+		self.cursor.execute("SELECT DISTINCT language FROM contrast_set")
+		self.all_languages = sorted(x[0] for x in self.cursor)  # cursor returns a list of tuples
 		print (self.all_languages)
 		
 		# The following will be updated as options are chosen
@@ -72,7 +72,7 @@ class MainWindowPanel(wx.Panel):
 		# Open a new window
 		initStats = copy(self.sessionStats)
 		trainingTitle = self.language + " | " + self.contrast
-		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(GOLDEN*300)), self.cur, self.language, self.contrast)
+		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(GOLDEN*300)), self.cursor, self.language, self.contrast)
 		dlg.ShowModal()
 		dlg.Destroy()
 		# Training feedback message
@@ -89,8 +89,8 @@ class MainWindowPanel(wx.Panel):
 		print (event.GetString())
 		self.language = event.GetString()
 		# Find all contrasts for the language
-		self.cur.execute("SELECT contrast FROM contrast_set WHERE language = ?", (self.language,))
-		self.all_contrasts = sorted(x[0] for x in self.cur)
+		self.cursor.execute("SELECT contrast FROM contrast_set WHERE language = ?", (self.language,))
+		self.all_contrasts = sorted(x[0] for x in self.cursor)
 		print (self.all_contrasts)
 		# Update the contrast dropdown menu
 		self.chooseContrast.SetItems(['-'] + self.all_contrasts)
@@ -157,9 +157,9 @@ class MainWindow(wx.Frame):
 		'''Opens FileWindow.'''
 		secondWindow = filewindow.FileWindow(self, "File Submission")	
 		nb = wx.Notebook(secondWindow)
-		nb.AddPage(metadatapanel.MetadataPanel(nb, self.panel.cur), "Language info")
-		nb.AddPage(filewindow.AddDataPanel(nb, self.panel.cur), "Recordings")
-		nb.AddPage(filewindow.MinimalPairsPanel(nb, self.panel.cur), "Minimal pairs")
+		nb.AddPage(metadatapanel.MetadataPanel(nb, self.panel.cursor), "Language info")
+		nb.AddPage(filewindow.AddDataPanel(nb, self.panel.cursor), "Recordings")
+		nb.AddPage(filewindow.MinimalPairsPanel(nb, self.panel.cursor), "Minimal pairs")
 		secondWindow.Show()
 	
 	def OnStats(self, event):
@@ -198,7 +198,7 @@ class MainWindow(wx.Frame):
 
 
 #app = wx.App(False)
-#frame = MainWindow(None, title="High Variability Phonetic Training software", cursor=cur)
+#frame = MainWindow(None, title="High Variability Phonetic Training software", cursor=cursor)
 # provider = wx.SimpleHelpProvider()
 # wx.HelpProvider_Set(provider)
 #frame.Show()

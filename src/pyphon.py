@@ -44,32 +44,32 @@ if __name__ == "__main__":
 	# Currently, userFile is not implemented
 	if os.path.exists(albumFile):
 		with sqlite3.connect(albumFile) as data:
-			cur = data.cursor()
-			cur.execute("PRAGMA foreign_keys = ON")
+			cursor = data.cursor()
+			cursor.execute("PRAGMA foreign_keys = ON")
 	
 	else:
 		with sqlite3.connect(albumFile) as data:
-			cur = data.cursor()
-			cur.execute("PRAGMA foreign_keys = ON")
+			cursor = data.cursor()
+			cursor.execute("PRAGMA foreign_keys = ON")
 			
-			cur.execute('''CREATE TABLE language_set
+			cursor.execute('''CREATE TABLE language_set
 				(language TEXT PRIMARY KEY)''')
 			
-			cur.execute('''CREATE TABLE contrast_set
+			cursor.execute('''CREATE TABLE contrast_set
 				(language TEXT,
 				 contrast TEXT,
 				 FOREIGN KEY (language) REFERENCES language_set(language)
 				 	ON DELETE CASCADE ON UPDATE CASCADE,
 				 PRIMARY KEY (language, contrast))''')
 			
-			cur.execute('''CREATE TABLE speaker_set
+			cursor.execute('''CREATE TABLE speaker_set
 				(language TEXT,
 				 speaker TEXT,
 				 FOREIGN KEY (language) REFERENCES language_set(language)
 				 	ON DELETE CASCADE ON UPDATE CASCADE,
 				 PRIMARY KEY (language, speaker))''')
 			
-			cur.execute('''CREATE TABLE recordings
+			cursor.execute('''CREATE TABLE recordings
 				(file TEXT PRIMARY KEY,
 				 speaker TEXT,
 				 language TEXT,
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 				 FOREIGN KEY (language, speaker) REFERENCES speaker_set(language, speaker)
 				 	ON DELETE CASCADE ON UPDATE CASCADE)''')
 			
-			cur.execute('''CREATE TABLE minimal_pairs
+			cursor.execute('''CREATE TABLE minimal_pairs
 				(language TEXT,
 				 contrast TEXT,
 				 item_1 TEXT,
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 	
 	# Open the main window
 	app = wx.App(False)
-	frame = wxGUI.MainWindow(None, title="High Variability Phonetic Training software", cursor=cur)
+	frame = wxGUI.MainWindow(None, title="High Variability Phonetic Training software", cursor=cursor)
 	frame.Show()
 	app.MainLoop()
 	

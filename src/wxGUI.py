@@ -18,7 +18,7 @@ class MainWindowPanel(wx.Panel):
 	- a GridBagSizer for organising the widgets in the panel
 	- a BoxSizer as a "main sizer", in which the GridBagSizer fits
 	'''
-	def __init__(self, parent, cursor):
+	def __init__(self, parent):
 		"""
 		cursor - SQLite3 cursor object
 		"""
@@ -29,13 +29,15 @@ class MainWindowPanel(wx.Panel):
 
 		# DATABASE CODE
 		
-		self.cursor = cursor
+		self.cursor = parent.cursor
 		self.cursor.execute("SELECT DISTINCT language FROM contrast_set")
-		self.all_languages = sorted(x[0] for x in self.cursor)  # cursor returns a list of tuples
-		print (self.all_languages)
+		self.trainLanguages = sorted(x[0] for x in self.cursor)  # cursor returns a list of tuples
+		print (self.trainLanguages)
+		
+		self.allContrasts = parent.allContrasts
 		
 		# The following will be updated as options are chosen
-		self.all_contrasts = []
+		self.trainContrasts = []
 		self.language = None
 		self.contrast = None
 		
@@ -43,13 +45,13 @@ class MainWindowPanel(wx.Panel):
 		
 		# WIDGET CODE
 		
-		self.chooseLanguage = wx.ComboBox(self, size=(140,-1), choices=["-"] + self.all_languages, style=wx.CB_READONLY)
+		self.chooseLanguage = wx.ComboBox(self, size=(140,-1), choices=self.trainLanguages, style=wx.CB_READONLY)
 		self.chooseContrast = wx.ComboBox(self, size=(95,-1), choices=["-"], style=wx.CB_READONLY)
 		
 		self.train = wx.Button(self, label="Train!")
 		self.Bind(wx.EVT_BUTTON, self.OnTrain, self.train)
-		self.Bind(wx.EVT_COMBOBOX, self.OnChooseLanguage, self.chooseLanguage)
-		self.Bind(wx.EVT_COMBOBOX, self.OnChooseContrast, self.chooseContrast)
+		self.Bind(wx.EVT_COMBOBOX, self.OnLanguage, self.chooseLanguage)
+		self.Bind(wx.EVT_COMBOBOX, self.OnContrast, self.chooseContrast)
 		
 		self.sessionFeedback = wx.StaticText(self, label="You have not trained so far today.")
 		
@@ -67,8 +69,8 @@ class MainWindowPanel(wx.Panel):
 	
 	def OnTrain(self, event):
 		# Check that the current settings are valid
-		assert self.language in self.all_languages
-		assert self.contrast in self.all_contrasts
+		assert self.language in self.trainLanguages
+		assert self.contrast in self.trainContrasts
 		# Open a new window
 		initStats = copy(self.sessionStats)
 		trainingTitle = self.language + " | " + self.contrast
@@ -84,18 +86,17 @@ class MainWindowPanel(wx.Panel):
 		except ZeroDivisionError:
 			print ("zero reps - no feedback")
 			
-	def OnChooseLanguage(self, event):
+	def OnLanguage(self, event):
 		# Save the chosen language
 		print (event.GetString())
 		self.language = event.GetString()
 		# Find all contrasts for the language
-		self.cursor.execute("SELECT contrast FROM contrast_set WHERE language = ?", (self.language,))
-		self.all_contrasts = sorted(x[0] for x in self.cursor)
-		print (self.all_contrasts)
+		self.trainContrasts = self.allContrasts[self.language]
+		print (self.trainContrasts)
 		# Update the contrast dropdown menu
-		self.chooseContrast.SetItems(['-'] + self.all_contrasts)
+		self.chooseContrast.SetItems(self.trainContrasts)
 
-	def OnChooseContrast(self, event):
+	def OnContrast(self, event):
 		# Save the chosen contrast
 		print (event.GetString())
 		self.contrast = event.GetString()
@@ -119,9 +120,27 @@ class MainWindow(wx.Frame):
 		"""
 		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,int(400*GOLDEN)))
 		
-		self.panel = MainWindowPanel(self, cursor)
+		# DATABASE ACCESS
 		
-		# MENU CODE
+		self.cursor = cursor
+		
+		self.cursor.execute("SELECT * FROM language_set")
+		self.allLanguages = [x[0] for x in self.cursor]
+		self.allContrasts = {x:[] for x in self.allLanguages} # Initialise with empty lists
+		self.allSpeakers  = {x:[] for x in self.allLanguages}
+		
+		self.metaData = (self.allLanguages, self.allContrasts, self.allSpeakers)
+		
+		for i, table in ((1, "contrast_set"), (2, "speaker_set")):
+			self.cursor.execute("SELECT * FROM {}".format(table))
+			for language, entry in self.cursor:
+				self.metaData[i][language].append(entry)
+			for language in self.allLanguages:
+				self.metaData[i][language].sort()
+		
+		# PANEL AND MENUS
+		
+		self.panel = MainWindowPanel(self)
 		
 		self.CreateStatusBar()   # would be nice to have Golden Ratio proportions
 		
@@ -152,16 +171,17 @@ class MainWindow(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
 		self.Bind(wx.EVT_MENU, self.OnClose, menuExit)
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
+	
 
 	def OnFile(self, event):
 		'''Opens FileWindow.'''
-		secondWindow = filewindow.FileWindow(self, "File Submission")	
-		nb = wx.Notebook(secondWindow)
-		nb.AddPage(metadatapanel.MetadataPanel(nb, self.panel.cursor), "Language info")
-		#nb.AddPage(filewindow.AddDataPanel(nb, self.panel.cursor), "Recordings")
-		#nb.AddPage(filewindow.MinimalPairsPanel(nb, self.panel.cursor), "Minimal pairs")
-		nb.AddPage(databasegridpanel.AddDataGridPanel(nb, self.panel.cursor), "Recordings")
-		nb.AddPage(databasegridpanel.MinimalPairsGridPanel(nb, self.panel.cursor), "Minimal pairs")
+		secondWindow = filewindow.FileWindow(self, "File Submission")
+		notebook = filewindow.FileNotebook(secondWindow)
+		notebook.AddPage(metadatapanel.MetadataPanel(notebook), "Language info")
+		notebook.AddPage(filewindow.RecordingsPanel(notebook), "Recordings")
+		notebook.AddPage(filewindow.MinimalPairsPanel(notebook), "Minimal pairs")
+        #notebook.AddPage(databasegridpanel.AddDataGridPanel(nb, self.panel.cursor), "Recordings")
+        #notebook.AddPage(databasegridpanel.MinimalPairsGridPanel(nb, self.panel.cursor), "Minimal pairs")
 		secondWindow.Show()
 	
 	def OnStats(self, event):

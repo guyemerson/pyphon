@@ -4,7 +4,7 @@ from __future__ import division
 import wx, datetime
 from copy import copy
 
-import trainingdialog, filewindow, statsdialog, optionsdialog, metadatapanel
+import trainingdialog, filewindow, statsdialog, optionsdialog, metadatapanel, databasegridpanel
 
 GOLDEN = 0.61803398875
 
@@ -158,8 +158,10 @@ class MainWindow(wx.Frame):
 		secondWindow = filewindow.FileWindow(self, "File Submission")	
 		nb = wx.Notebook(secondWindow)
 		nb.AddPage(metadatapanel.MetadataPanel(nb, self.panel.cursor), "Language info")
-		nb.AddPage(filewindow.AddDataPanel(nb, self.panel.cursor), "Recordings")
-		nb.AddPage(filewindow.MinimalPairsPanel(nb, self.panel.cursor), "Minimal pairs")
+		#nb.AddPage(filewindow.AddDataPanel(nb, self.panel.cursor), "Recordings")
+		#nb.AddPage(filewindow.MinimalPairsPanel(nb, self.panel.cursor), "Minimal pairs")
+		nb.AddPage(databasegridpanel.AddDataGridPanel(nb, self.panel.cursor), "Recordings")
+		nb.AddPage(databasegridpanel.MinimalPairsGridPanel(nb, self.panel.cursor), "Minimal pairs")
 		secondWindow.Show()
 	
 	def OnStats(self, event):

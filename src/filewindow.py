@@ -122,6 +122,9 @@ class DatabasePanel(wx.Panel):
 
 	# Show popup menu
 	def OnShowPopup(self, event):
+		x = self.menu.GetMenuItemCount()  # deletes menu items to stop them accumulating
+		for i in range(x):
+			self.menu.DestroyItem(i) # THIS FAILS currently due to "another argument needed", although the documentation seems to say only an int is needed
 		pos = self.ScreenToClient(event.GetPosition())
 		sel = self.fileList.GetFocusedItem()
 		for i in range(len(self.options)):

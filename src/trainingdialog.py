@@ -95,7 +95,7 @@ class TrainingDialog(wx.Dialog):
 			self.OnChoice(1)
 		self.pendingAnswer = False
 	# A space event for Next would also be nice
-	# These still need to be (a) idiot-proofed (so they only work at the right time), and (b) the "error bell" needs to be removed
+
 	def OnChoice(self, choice):
 		"""
 		Button press depending on choice (index in self.options)

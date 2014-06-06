@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 import wx, os, sqlite3
 import wxGUI
 

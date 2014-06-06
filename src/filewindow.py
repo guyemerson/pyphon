@@ -14,100 +14,6 @@ class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
 		listmix.TextEditMixin.__init__(self)
 
 
-class DatabasePanel(wx.Panel):
-	def __init__(self, parent, cursor):
-		wx.Panel.__init__(self, parent, size=PANEL_SIZE)
-		
-		self.SetBackgroundColour('#ededed')
-		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
-
-		self.selectAll = wx.Button(self, label="Select all")
-		self.deleteSelected = wx.Button(self, label="Delete selected")
-		self.save = wx.Button(self, label="Save changes")
-		self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
-		
-		self.search = wx.TextCtrl(self, value="<search>", size=(250, -1))
-		
-		# first time using this object, seeing how it goes, may use ListBox object instead
-		self.fileList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(500,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-		
-		#self.fileList.Append("hello")
-		#self.fileList.EnableAlternateRowColours(enable=True)
-		#self.fileList.EnableBellOnNoMatch(on=True)
-		
-		self.grid.Add(self.search, pos=(1,1), span=(1,3))
-		self.grid.Add(self.fileList,  pos=(3,1), span=(3,3))
-		self.grid.Add(self.selectAll, pos=(6,1))
-		self.grid.Add(self.save, pos=(6,4))
-		self.grid.Add(self.deleteSelected, pos=(7,1))
-		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
-		self.SetSizerAndFit(self.mainSizer)
-		
-	def OnSelectAll(self, event):
-		print("You have pressed the 'Select All' button")
-
-
-
-class AddDataPanel(DatabasePanel):
-	def __init__(self, parent, cursor):
-		DatabasePanel.__init__(self, parent=parent, cursor=cursor)
-		
-		self.browse = wx.Button(self, label="Browse...")
-		self.save.Label= "Add to database"
-		self.deleteSelected.Label = "Remove selected"
-		
-		self.fileList.InsertColumn(col=0, heading="Filename", width=180)
-		self.fileList.InsertColumn(col=1, heading="Answer")  #, format=wx.LIST_FORMAT_LEFT, width=-1)
-		self.fileList.InsertColumn(col=2, heading="Language")
-		self.fileList.InsertColumn(col=3, heading="Speaker")
-
-		rows = [("guns", "dangerous"),
-		("pyphon", "awesome"),
-		("pasta", "tasty")]
-		
-		i = 0
-		for row in rows:
-			self.fileList.InsertStringItem(i, row[0])
-			self.fileList.SetStringItem(i, 1, row[1])
-			self.fileList.SetStringItem(i, 2, "-")
-			i +=1
-		
-		self.Bind(wx.EVT_BUTTON, self.OnBrowse, self.browse)
-		self.Bind(wx.EVT_BUTTON, self.OnAdd, self.save)
-		# play file on pressing enter when row highlighted
-		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnFileExample, self.fileList)
-		
-		self.grid.Add(self.browse, pos=(1,4))
-		
-	def OnFileExample(self, event):
-		'''Plays the sound file from the selected row.'''
-		x = self.fileList.GetFocusedItem()
-		print x
-		playDir  = self.fileList.GetItemText(item=x, col=0)
-		print ("You just asked for an example of {}".format(playDir))
-		# Finish me, Guy! :)
-
-	def OnBrowse(self, event):
-		print("Let's do some browsin'")
-		dlg = wx.FileDialog(self, "Choose a file", defaultDir=os.getcwd(), defaultFile="", wildcard="*.wav", style=wx.FD_MULTIPLE)
-		if dlg.ShowModal() == wx.ID_OK:
-			print (dlg.GetFilenames())
-			i = 0
-			for filename in dlg.GetFilenames():
-				self.fileList.InsertStringItem(i, filename)
-				self.fileList.SetStringItem(i, 1, "<insert sound>")
-				self.fileList.SetStringItem(i, 2, "...")
-				i +=1
-		#	self.filepath.Value = dlg.GetDirectory() + '\\' + dlg.GetFilename()  -- need to retool for multiple files
-	
-	def OnAdd(self, event):
-		newStuff = []
-		dlg = wx.MessageDialog(self, "You intend to add these things to the database: \n{}\nDo you wish to continue?".format(newStuff), "Confirmation", wx.OK | wx.CANCEL)
-		if dlg.ShowModal() == wx.ID_OK:
-			print ("You want to put some stuff in the database. We've taken note and will have customer services call you.")
-		dlg.Destroy()
-
 
 class AddPairsDialog(wx.Dialog):
 	def __init__(self, parentPanel, title, size):
@@ -170,22 +76,144 @@ class AddPairsDialog(wx.Dialog):
 			self.AddPair()
 	def OnAddPair(self, event):
 		self.AddPair()
+		
+		
+
+class DatabasePanel(wx.Panel):
+	def __init__(self, parent, cursor, options):
+		wx.Panel.__init__(self, parent, size=PANEL_SIZE)
+		
+		self.options = options
+		
+		self.SetBackgroundColour('#ededed')
+		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
+
+		self.selectAll = wx.Button(self, label="Select all")
+		self.deleteSelected = wx.Button(self, label="Delete selected")
+		self.save = wx.Button(self, label="Save changes")
+		self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
+		
+		self.search = wx.TextCtrl(self, value="<search>", size=(250, -1))
+		
+		# first time using this object, seeing how it goes, may use ListBox object instead
+		self.fileList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(500,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+		
+		for i in range(len(self.options)):
+			self.fileList.InsertColumn(col=i, heading=self.options[i])
+		# also, widen column 1!!
+		
+		#self.fileList.Append("hello")
+		#self.fileList.EnableAlternateRowColours(enable=True)
+		#self.fileList.EnableBellOnNoMatch(on=True)
+		
+		self.grid.Add(self.search, pos=(1,1), span=(1,3))
+		self.grid.Add(self.fileList,  pos=(3,1), span=(3,3))
+		self.grid.Add(self.selectAll, pos=(6,1))
+		self.grid.Add(self.save, pos=(6,4))
+		self.grid.Add(self.deleteSelected, pos=(7,1))
+		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
+		self.SetSizerAndFit(self.mainSizer)
+		
+		
+		# POPUP MENUS
+		self.menu = wx.Menu()
+		self.fileList.Bind(wx.EVT_CONTEXT_MENU, self.OnShowPopup)
+
+	# Show popup menu
+	def OnShowPopup(self, event):
+		pos = self.ScreenToClient(event.GetPosition())
+		sel = self.fileList.GetFocusedItem()
+		for i in range(len(self.options)):
+			option = 'Generalise "{}" to all {} entries'.format(self.fileList.GetItemText(item=sel, col=i), self.options[i])
+			item = self.menu.Append(-1, option)
+			self.Bind(wx.EVT_MENU, self.OnPopupItemSelected, item)
+		self.PopupMenu(self.menu, pos)
+	
+	# Show dialog box appropriate to listbox clicked
+	def OnPopupItemSelected(self, event):	
+		item = self.menu.FindItemById(event.GetId())
+		action = item.GetText()
+		self.PopupMenuDialog(action) # self.PopupMenuDialog is defined in each child class, no need to define it in the parent class
+		
+	def OnSelectAll(self, event):
+		print("You have pressed the 'Select All' button")
+
+
+
+class AddDataPanel(DatabasePanel):
+	def __init__(self, parent, cursor):
+		DatabasePanel.__init__(self, parent=parent, cursor=cursor, options=["Filename", "Answer", "Language", "Speaker"])
+		
+		self.browse = wx.Button(self, label="Browse...")
+		self.save.Label= "Add to database"
+		self.deleteSelected.Label = "Remove selected"
+
+		rows = [("guns", "dangerous"),
+		("pyphon", "awesome"),
+		("pasta", "tasty")]
+		
+		i = 0
+		for row in rows:
+			self.fileList.InsertStringItem(i, row[0])
+			self.fileList.SetStringItem(i, 1, row[1])
+			self.fileList.SetStringItem(i, 2, "-")
+			i +=1
+		
+		self.Bind(wx.EVT_BUTTON, self.OnBrowse, self.browse)
+		self.Bind(wx.EVT_BUTTON, self.OnAdd, self.save)
+		# play file on pressing enter when row highlighted
+		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnFileExample, self.fileList)
+		
+		self.grid.Add(self.browse, pos=(1,4))
+
+
+	def PopupMenuDialog(self, action):
+		x = self.fileList.GetFocusedItem()
+		print x
+		thingy = self.fileList.GetItemText(item=x, col=0)
+		dlg = wx.MessageDialog(self, "You are interested in {}".format(thingy), "Message for you")
+		dlg.ShowModal()
+		dlg.Destroy()
+	
+	def OnFileExample(self, event):
+		'''Plays the sound file from the selected row.'''
+		x = self.fileList.GetFocusedItem()
+		print x
+		playDir  = self.fileList.GetItemText(item=x, col=0)
+		print ("You just asked for an example of {}".format(playDir))
+		# Finish me, Guy! :)
+
+	def OnBrowse(self, event):
+		print("Let's do some browsin'")
+		dlg = wx.FileDialog(self, "Choose a file", defaultDir=os.getcwd(), defaultFile="", wildcard="*.wav", style=wx.FD_MULTIPLE)
+		if dlg.ShowModal() == wx.ID_OK:
+			print (dlg.GetFilenames())
+			i = 0
+			for filename in dlg.GetFilenames():
+				self.fileList.InsertStringItem(i, filename)
+				self.fileList.SetStringItem(i, 1, "<insert sound>")
+				self.fileList.SetStringItem(i, 2, "...")
+				i +=1
+	
+	def OnAdd(self, event):
+		newStuff = []
+		dlg = wx.MessageDialog(self, "You intend to add these things to the database: \n{}\nDo you wish to continue?".format(newStuff), "Confirmation", wx.OK | wx.CANCEL)
+		if dlg.ShowModal() == wx.ID_OK:
+			print ("You want to put some stuff in the database. We've taken note and will have customer services call you.")
+		dlg.Destroy()
+
 
 
 class MinimalPairsPanel(DatabasePanel):
 	def __init__(self, parent, cursor):
-		DatabasePanel.__init__(self, parent=parent, cursor=cursor)
+		DatabasePanel.__init__(self, parent=parent, cursor=cursor, options=["Language", "Contrast", "Option 1", "Option 2"])
 		
 		self.addPairs = wx.Button(self, label="Add pairs...")
 		self.Bind(wx.EVT_BUTTON, self.OnAddPairs, self.addPairs)
 		
 		self.SetBackgroundColour('#ededed')
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-		
-		self.fileList.InsertColumn(col=0, heading="Language", width=100)
-		self.fileList.InsertColumn(col=1, heading="Contrast") 
-		self.fileList.InsertColumn(col=2, heading="Option 1")
-		self.fileList.InsertColumn(col=3, heading="Option 2")
 
 		rows = [("guns", "dangerous"),
 		("pyphon", "awesome"),
@@ -202,6 +230,7 @@ class MinimalPairsPanel(DatabasePanel):
 		dlg = AddPairsDialog(self, "Add Pairs", size=(300,200))
 		dlg.ShowModal()
 		dlg.Destroy()
+
 
 
 class FileWindow(wx.Frame):

@@ -193,6 +193,8 @@ class MainWindow(wx.Frame):
 			f.write(str(self.panel.sessionStats))
 			f.write("\n")
 		"""
+		dlg = wx.MessageDialog(self, "Jesus has changed your life.\nSave changes?", "Important", wx.YES | wx.NO | wx.ICON_QUESTION)
+		dlg.ShowModal()
 		self.Destroy()
 
 
@@ -203,5 +205,3 @@ class MainWindow(wx.Frame):
 # wx.HelpProvider_Set(provider)
 #frame.Show()
 #app.MainLoop()
-# nb = wx.Notebook(frame)
-# nb.AddPage(whatever_panel_you_made(nb), "whatever panel name")"""

@@ -176,12 +176,6 @@ class MainWindow(wx.Frame):
 	def OnFile(self, event):
 		'''Opens FileWindow.'''
 		secondWindow = filewindow.FileWindow(self, "File Submission")
-		notebook = filewindow.FileNotebook(secondWindow)
-		notebook.AddPage(metadatapanel.MetadataPanel(notebook), "Language info")
-		notebook.AddPage(filewindow.RecordingsPanel(notebook), "Recordings")
-		notebook.AddPage(filewindow.MinimalPairsPanel(notebook), "Minimal pairs")
-        #notebook.AddPage(databasegridpanel.AddDataGridPanel(nb, self.panel.cursor), "Recordings")
-        #notebook.AddPage(databasegridpanel.MinimalPairsGridPanel(nb, self.panel.cursor), "Minimal pairs")
 		secondWindow.Show()
 	
 	def OnStats(self, event):

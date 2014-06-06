@@ -1,7 +1,7 @@
 import wx, os
 import wx.lib.mixins.listctrl as listmix
 
-import pyphon
+import pyphon, metadatapanel
 
 PANEL_SIZE = (800,600)
 
@@ -211,7 +211,7 @@ class RecordingsPanel(DatabasePanel):
 				print(filename)
 				# Only remember the directory if not the data directory
 				if direc:
-					filename = direc + filename
+					filename = os.path.join(direc, filename)
 				# Add files to the end of the table
 				self.itemList.InsertStringItem(i, filename)
 				i += 1
@@ -265,6 +265,12 @@ class FileWindow(wx.Frame):
 		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=PANEL_SIZE)
 		self.cursor = parent.cursor
 		self.metaData = parent.metaData
+		notebook = FileNotebook(self)
+		notebook.AddPage(metadatapanel.MetadataPanel(notebook), "Language info")
+		notebook.AddPage(RecordingsPanel(notebook), "Recordings")
+		notebook.AddPage(MinimalPairsPanel(notebook), "Minimal pairs")
+        #notebook.AddPage(databasegridpanel.AddDataGridPanel(notebook), "Recordings")
+        #notebook.AddPage(databasegridpanel.MinimalPairsGridPanel(notebook), "Minimal pairs")
 	
 class FileNotebook(wx.Notebook):
 	def __init__(self, parent):

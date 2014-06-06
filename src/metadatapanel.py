@@ -3,7 +3,7 @@ import wx
 PANEL_SIZE = (800,600)
 
 class MetadataPanel(wx.Panel):
-	def __init__(self, parent, cursor):
+	def __init__(self, parent):
 		"""
 		Panel to view and edit languages, contrasts, and speakers.
 		'cursor' should be an SQLite3 database cursor.
@@ -37,23 +37,11 @@ class MetadataPanel(wx.Panel):
 		self.Bind(wx.EVT_BUTTON, self.OnAddSpeaker,  self.addSpeaker)
 		
 		# Fetch items from database
-		self.cursor = cursor
-		self.cursor.execute("SELECT * FROM language_set")
-		self.allLanguages = [x[0] for x in self.cursor]
-		self.allContrasts = {x:[] for x in self.allLanguages} # Initialise with empty lists
-		self.allSpeakers  = {x:[] for x in self.allLanguages}
+		self.cursor = parent.cursor
+		self.metaData = parent.metaData
+		self.tables = ("language_set", "contrast_set", "speaker_set")
+		self.allLanguages, self.allContrasts, self.allSpeakers = self.metaData
 		
-		self.data = [self.allLanguages, self.allContrasts, self.allSpeakers]
-		self.tables = ["language_set", "contrast_set", "speaker_set"]
-		
-		for i in [1,2]:
-			self.cursor.execute("SELECT * FROM {}".format(self.tables[i]))
-			for language, entry in self.cursor:
-				self.data[i][language].append(entry)
-			for language in self.allLanguages:
-				self.data[i][language].sort()
-		
-		self.allLanguages.sort()
 		self.languages.SetItems(self.allLanguages)
 		
 		
@@ -119,7 +107,7 @@ class MetadataPanel(wx.Panel):
 					self.contrasts.Clear()
 					self.speakers.Clear()
 				else:
-					del self.data[i][self.chosenLanguage][index]
+					del self.metaData[i][self.chosenLanguage][index]
 					self.cursor.execute("DELETE FROM {} WHERE language = ? AND {} = ?".format(self.tables[i], self.names[i]), (self.chosenLanguage, selection))
 			dlg.Destroy()
 		
@@ -138,7 +126,7 @@ class MetadataPanel(wx.Panel):
 					self.chosenLanguage = entry
 					self.cursor.execute("UPDATE language_set SET language = ? WHERE language = ?", (entry, selection))
 				else:
-					self.data[i][self.chosenLanguage][index] = entry
+					self.metaData[i][self.chosenLanguage][index] = entry
 					self.cursor.execute("UPDATE {0} SET {1} = ? WHERE language = ? AND {1} = ?".format(self.tables[i], self.names[i]), (entry, self.chosenLanguage, selection))
 				
 				# rewrite box contents
@@ -165,7 +153,7 @@ class MetadataPanel(wx.Panel):
 				self.allSpeakers[text] = []
 				self.cursor.execute("INSERT INTO language_set VALUES (?)", (text,))
 			else:
-				self.data[i][self.chosenLanguage].append(text)
+				self.metaData[i][self.chosenLanguage].append(text)
 				self.cursor.execute("INSERT INTO {} VALUES (?, ?)".format(self.tables[i]), (self.chosenLanguage, text))
 	
 	def OnSelectLanguage(self, event):

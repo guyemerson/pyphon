@@ -1,4 +1,5 @@
 import wx
+wx.USE_UNICODE = 1
 
 PANEL_SIZE = (800,600)
 
@@ -92,7 +93,7 @@ class MetadataPanel(wx.Panel):
 		'''Brings up the dialog box appropriate to the selected option in the context menu.'''
 		theBox = self.boxes[i]
 		index = theBox.GetSelections()[0]
-		selection = unicode(theBox.GetString(index))
+		selection = theBox.GetString(index)
 		print index, selection
 		
 		if action == u"delete":
@@ -115,7 +116,7 @@ class MetadataPanel(wx.Panel):
 		elif action == u"rename":
 			dlg = wx.TextEntryDialog(self, u"Enter the new name for item '{}' below.".format(selection), u"Rename item")
 			if dlg.ShowModal() == wx.ID_OK:
-				entry = unicode(dlg.GetValue())
+				entry = dlg.GetValue()
 				newlist = theBox.GetStrings() # all the listbox's current strings
 				# replace selected string with user-entered string
 				newlist = [entry if x == selection else x for x in newlist]
@@ -145,7 +146,7 @@ class MetadataPanel(wx.Panel):
 		'''Adds a language or contrast or speaker to the list.'''
 		box = self.boxes[i]
 		variable = self.names[i]
-		text = unicode(wx.GetTextFromUser(message=(u"Enter a new {}".format(variable)), caption=(u"New {}".format(variable)), default_value="", parent=None))
+		text = wx.GetTextFromUser(message=(u"Enter a new {}".format(variable)), caption=(u"New {}".format(variable)), default_value="", parent=None)
 		if text != u"":
 			box.Append(text)
 			if i == 0:
@@ -175,6 +176,6 @@ class MetadataPanel(wx.Panel):
 	def OnExample(self, i, index):
 		'''Plays the sound of that speaker saying a word, or a word in that language, or a pair of contrasting words for that contrast.'''
 		theBox = self.boxes[i]
-		play = unicode(theBox.GetString(index))
+		play = theBox.GetString(index)
 		print (u"You just asked for an example of {}".format(play))
 		# Finish me, Guy! :)

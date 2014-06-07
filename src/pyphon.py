@@ -2,6 +2,7 @@
 
 import wx, os, sqlite3
 import wxGUI
+wx.USE_UNICODE = 1
 
 SRC_DIR = os.getcwd()
 DATA_DIR = os.path.join(os.path.split(SRC_DIR)[0], 'data')

@@ -6,6 +6,7 @@ from copy import copy
 
 import trainingdialog, filewindow, statsdialog, optionsdialog, metadatapanel, databasegridpanel
 
+wx.USE_UNICODE = 1
 GOLDEN = 0.61803398875
 
 class MainWindowPanel(wx.Panel):

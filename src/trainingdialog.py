@@ -2,7 +2,7 @@
 
 import wx, random
 import pyphon
-
+wx.USE_UNICODE = 1
 
 class TrainingDialog(wx.Dialog):
 	'''

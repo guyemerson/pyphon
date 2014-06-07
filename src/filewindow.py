@@ -1,5 +1,6 @@
 import wx, os
 import wx.lib.mixins.listctrl as listmix
+wx.USE_UNICODE = 1
 
 import pyphon, metadatapanel
 
@@ -24,7 +25,8 @@ class AddPairsDialog(wx.Dialog):
 		
 		self.size = size
 		self.parent = parent
-		self.allContrasts = parent.allContrasts
+		self.allContrasts = {lang:cList for lang, cList in parent.allContrasts.items() if cList}
+		self.cursor = parent.cursor
 		self.language = None
 		self.contrast = None
 		
@@ -35,10 +37,10 @@ class AddPairsDialog(wx.Dialog):
 		
 		self.chooseLanguage = wx.ComboBox(self.panel, size=(140,-1), choices=parent.allLanguages, style=wx.CB_READONLY)
 		self.chooseContrast = wx.ComboBox(self.panel, size=(140,-1), choices=["-"], style=wx.CB_READONLY)
-		self.first = wx.TextCtrl(self.panel, value="", size=(60,-1))
+		self.first = wx.TextCtrl(self.panel, value=u"", size=(60,-1))
 		self.first.SetFocus()
-		self.second = wx.TextCtrl(self.panel, value="", size=(60,-1))
-		self.addPair = wx.Button(self.panel, label="Add pair")
+		self.second = wx.TextCtrl(self.panel, value=u"", size=(60,-1))
+		self.addPair = wx.Button(self.panel, label=u"Add pair")
 		
 		self.Bind(wx.EVT_BUTTON, self.OnAddPair, self.addPair)
 		self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
@@ -54,25 +56,30 @@ class AddPairsDialog(wx.Dialog):
 		self.panel.SetSizerAndFit(self.mainSizer)
 
 	def OnLanguage(self, event):
-		self.language = event.GetString()
+		self.language = unicode(event.GetString())
 		self.chooseContrast.SetItems(self.allContrasts[self.language])
-		print("you chose {}".format(self.language))
+		self.contrast = None
+		print(u"you chose {}".format(self.language))
 	
 	def OnContrast(self, event):
-		self.contrast = event.GetString()
-		print("you chose {}".format(self.contrast))
+		self.contrast = unicode(event.GetString())
+		print(u"you chose {}".format(self.contrast))
 	
 	def OnAddPair(self, event):
-		item1, item2 = self.first.Value, self.second.Value
-		if "-" in [self.language, self.contrast]:
-			dlg = wx.MessageDialog(self.panel, "You have not specified language or contrast.\nPlease specify these and try again.", "Error", wx.OK | wx.ICON_ERROR)
+		item1, item2 = unicode(self.first.Value).strip(), unicode(self.second.Value).strip()
+		
+		if not (self.language and self.contrast):
+			dlg = wx.MessageDialog(self.panel, u"Please specify the language and contrast.", u"Error", wx.OK | wx.ICON_ERROR)
 			dlg.ShowModal()
 			dlg.Destroy()
-		elif "" in [item1, item2]:
-			dlg = wx.MessageDialog(self.panel, "You have not specified both words in the pair.\nPlease specify these and try again.", "Error", wx.OK | wx.ICON_ERROR)
+		
+		elif not (item1 and item2):
+			dlg = wx.MessageDialog(self.panel, u"Please specify both items.", u"Error", wx.OK | wx.ICON_ERROR)
 			dlg.ShowModal()
 			dlg.Destroy()
+		
 		else:
+			self.cursor.execute(u"INSERT INTO minimal_pairs VALUES (?, ?, ?, ?)", (self.language, self.contrast, item1, item2))
 			self.parent.addToList(self.parent.itemList.GetItemCount(), (self.language, self.contrast, item1, item2))
 	
 	def OnKeyDown(self, event): 
@@ -97,11 +104,11 @@ class DatabasePanel(wx.Panel):
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
 
-		self.selectAll = wx.Button(self, label="Select all")
-		self.delete = wx.Button(self, label="Delete selected")
-		self.save = wx.Button(self, label="Save changes")
-		self.add = wx.Button(self, label="Add...")  # Generic label to be changed by child classes
-		self.search = wx.TextCtrl(self, value="<search>", size=(250, -1), style=wx.TE_PROCESS_ENTER)
+		self.selectAll = wx.Button(self, label=u"Select all")
+		self.delete = wx.Button(self, label=u"Delete selected")
+		self.save = wx.Button(self, label=u"Save changes")
+		self.add = wx.Button(self, label=u"Add...")  # Generic label to be changed by child classes
+		self.search = wx.TextCtrl(self, value=u"<search>", size=(250, -1), style=wx.TE_PROCESS_ENTER)
 		
 		self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
 		self.Bind(wx.EVT_BUTTON, self.OnDelete, self.delete)
@@ -113,7 +120,7 @@ class DatabasePanel(wx.Panel):
 		self.itemList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(500,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 		for i, text in enumerate(self.options):
 			self.itemList.InsertColumn(col=i, heading=text)
-		# also, widen column 1!!
+		self.itemList.SetColumnWidth(0, 100)
 		
 		#self.itemList.EnableAlternateRowColours(enable=True)
 		#self.itemList.EnableBellOnNoMatch(on=True)
@@ -131,43 +138,49 @@ class DatabasePanel(wx.Panel):
 		self.cursor = parent.cursor
 		
 		# POPUP MENUS
-		self.menu = wx.Menu()
+		self.menu = wx.Menu()  # Labels will be dynamically changed as needed
 		self.itemList.Bind(wx.EVT_CONTEXT_MENU, self.OnShowPopup)
-	
-	# Show popup menu
-	def OnShowPopup(self, event):
-		x = self.menu.GetMenuItemCount()  # deletes menu items to stop them accumulating
-		for i in range(x):
-			self.menu.DestroyItem(i) # THIS FAILS currently due to "another argument needed", although the documentation seems to say only an int is needed
-		pos = self.ScreenToClient(event.GetPosition())
-		sel = self.itemList.GetFocusedItem()
-		for i, heading in enumerate(self.options):
-			option = 'Generalise "{}" to all {} entries'.format(self.itemList.GetItemText(item=sel, col=i), heading)
-			item = self.menu.Append(-1, option)
+		
+		for i in range(len(self.options)):
+			item = self.menu.Append(-1, u"<placeholder>")
 			self.Bind(wx.EVT_MENU, self.OnPopupItemSelected, item)
-		self.PopupMenu(self.menu, pos)
-	
-	# Show dialog box appropriate to listbox clicked
-	def OnPopupItemSelected(self, event):	
-		item = self.menu.FindItemById(event.GetId())
-		action = item.GetText()
-		self.PopupMenuDialog(action)
+		
 	
 	def addToList(self, index, items):
+		""" Add an item to the table """
 		self.itemList.InsertStringItem(index, items[0])
-		self.itemList.SetStringItem(index, 1, items[1])
-		self.itemList.SetStringItem(index, 2, items[2])
-		self.itemList.SetStringItem(index, 3, items[3])
+		for i in range(1, len(items)):
+			self.itemList.SetStringItem(index, i, items[i])
+	
+	
+	def OnShowPopup(self, event):
+		""" Show popup menu """
+		pos = self.ScreenToClient(event.GetPosition())
+		sel = self.itemList.GetFocusedItem()
+		for i, item in enumerate(self.menu.GetMenuItems()):
+			option = u'Copy "{}" to all selected rows'.format(self.itemList.GetItemText(item=sel, col=i))
+			item.SetText(option)
+		self.PopupMenu(self.menu, pos)
+	
+	def OnPopupItemSelected(self, event):
+		""" Show dialog box appropriate to listbox clicked """
+		item = self.menu.FindItemById(event.GetId())
+		choice = self.menu.GetMenuItems().index(item)
+		sel = self.itemList.GetFocusedItem()
+		text = self.itemList.GetItemText(item=sel, col=choice)
+		for row in range(self.itemList.GetItemCount()):
+			if self.itemList.IsSelected(row):
+				self.itemList.SetStringItem(row, choice, text)
 	
 	def OnSelectAll(self, event):
-		print("You have pressed the 'Select All' button")
+		""" This is still a placeholder """
+		print(u"You have pressed the 'Select All' button")
 	
 	# The following functions must be overwritten by subclasses
 	def OnAdd(self, event):	raise NotImplementedError
 	def OnSave(self, event): raise NotImplementedError
 	def OnSearch(self, event): raise NotImplementedError
 	def OnDelete(self, event): raise NotImplementedError
-	def PopupMenuDialog(self, action): raise NotImplementedError
 
 
 class RecordingsPanel(DatabasePanel):
@@ -175,13 +188,15 @@ class RecordingsPanel(DatabasePanel):
 	View and edit metadata for recordings
 	"""
 	def __init__(self, parent):
-		DatabasePanel.__init__(self, parent=parent, options=("Filename", "Answer", "Language", "Speaker"))
-		self.add.Label = "Add files..."
+		DatabasePanel.__init__(self, parent=parent, options=(u"Filename", u"Answer", u"Language", u"Speaker"))
+		self.add.Label = u"Add files..."
 		
 		### Currently we load everything - later we need to do this based on search...
-		self.cursor.execute("SELECT file, answer, language, speaker FROM recordings")
-		for i, recording in enumerate(self.cursor):
-			self.addToList(i, recording)
+		self.cursor.execute(u"SELECT file, answer, language, speaker FROM recordings")
+		self.numOld = 0
+		for recording in self.cursor:
+			self.addToList(self.numOld, recording)
+			self.numOld += 1
 		
 		# play file on pressing enter when row highlighted
 		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnPlay, self.itemList)
@@ -194,12 +209,13 @@ class RecordingsPanel(DatabasePanel):
 		x = self.itemList.GetFocusedItem()
 		print(x)
 		filename = self.itemList.GetItemText(item=x, col=0)
+		filename = pyphon.filepath(filename)
 		wx.Sound(filename).Play()
 
 	def OnAdd(self, event):
 		""" Browse for files """
 		print("Let's do some browsin'")
-		dlg = wx.FileDialog(self, "Choose file(s)", defaultDir=pyphon.DATA_DIR, defaultFile="", wildcard="*.wav", style=wx.FD_MULTIPLE)
+		dlg = wx.FileDialog(self, u"Choose file(s)", defaultDir=pyphon.DATA_DIR, defaultFile=u"", wildcard=u"*.wav", style=wx.FD_MULTIPLE)
 		if dlg.ShowModal() == wx.ID_OK:
 			# Check if files are already in the data directory
 			direc = dlg.GetDirectory()
@@ -213,23 +229,22 @@ class RecordingsPanel(DatabasePanel):
 				if direc:
 					filename = os.path.join(direc, filename)
 				# Add files to the end of the table
-				self.itemList.InsertStringItem(i, filename)
+				self.addToList(i, (filename,))
 				i += 1
 	
 	def OnSave(self, event):
-		newStuff = []
-		dlg = wx.MessageDialog(self, "You intend to add these things to the database: \n{}\nDo you wish to continue?".format(newStuff), "Confirmation", wx.OK | wx.CANCEL)
+		""" Currently, we save new files only """
+		for i in range(self.numOld):
+			pass
+		for i in range(self.numOld, self.itemList.GetItemCount()):
+			filename, answer, language, speaker = (self.itemList.GetItemText(i, j) for j in range(4))
+			self.cursor.execute(u"INSERT INTO recordings VALUES (?,?,?,?)", (filename, speaker, language, answer))
+		"""
+		dlg = wx.MessageDialog(self, u"Save changes?".format(newStuff), u"Confirmation", wx.OK | wx.CANCEL)
 		if dlg.ShowModal() == wx.ID_OK:
-			print ("You want to put some stuff in the database. We've taken note and will have customer services call you.")
+			print (u"You want to put some stuff in the database. We've taken note and will have customer services call you.")
 		dlg.Destroy()
-	
-	def PopupMenuDialog(self, action):
-		x = self.itemList.GetFocusedItem()
-		print x
-		thingy = self.itemList.GetItemText(item=x, col=0)
-		dlg = wx.MessageDialog(self, "You are interested in {}".format(thingy), "Message for you")
-		dlg.ShowModal()
-		dlg.Destroy()
+		"""
 
 
 class MinimalPairsPanel(DatabasePanel):
@@ -237,12 +252,12 @@ class MinimalPairsPanel(DatabasePanel):
 	View and edit minimal pairs
 	"""
 	def __init__(self, parent):
-		DatabasePanel.__init__(self, parent=parent, options=("Language", "Contrast", "Item 1", "Item 2"))
+		DatabasePanel.__init__(self, parent=parent, options=(u"Language", u"Contrast", u"Item 1", u"Item 2"))
 		
-		self.add.Label = "Add pairs..."
+		self.add.Label = u"Add pairs..."
 
 		### Currently we load everything - later we need to do this based on search...
-		self.cursor.execute("SELECT language, contrast, item_1, item_2 FROM minimal_pairs")
+		self.cursor.execute(u"SELECT language, contrast, item_1, item_2 FROM minimal_pairs")
 		for i, pair in enumerate(self.cursor):
 			self.addToList(i, pair)
 		
@@ -250,7 +265,7 @@ class MinimalPairsPanel(DatabasePanel):
 	
 	
 	def OnAdd(self, event):
-		dlg = AddPairsDialog(self, "Add Pairs", size=(300,200))
+		dlg = AddPairsDialog(self, u"Add Pairs", size=(300,200))
 		dlg.ShowModal()
 		dlg.Destroy()
 
@@ -266,9 +281,9 @@ class FileWindow(wx.Frame):
 		self.cursor = parent.cursor
 		self.metaData = parent.metaData
 		notebook = FileNotebook(self)
-		notebook.AddPage(metadatapanel.MetadataPanel(notebook), "Language info")
-		notebook.AddPage(RecordingsPanel(notebook), "Recordings")
-		notebook.AddPage(MinimalPairsPanel(notebook), "Minimal pairs")
+		notebook.AddPage(metadatapanel.MetadataPanel(notebook), u"Language info")
+		notebook.AddPage(RecordingsPanel(notebook), u"Recordings")
+		notebook.AddPage(MinimalPairsPanel(notebook), u"Minimal pairs")
         #notebook.AddPage(databasegridpanel.AddDataGridPanel(notebook), "Recordings")
         #notebook.AddPage(databasegridpanel.MinimalPairsGridPanel(notebook), "Minimal pairs")
 	

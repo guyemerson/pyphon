@@ -80,7 +80,7 @@ class AddPairsDialog(wx.Dialog):
 		
 		else:
 			self.cursor.execute(u"INSERT INTO minimal_pairs VALUES (?, ?, ?, ?)", (self.language, self.contrast, item1, item2))
-			self.parent.addToList(self.parent.itemList.GetItemCount(), (self.language, self.contrast, item1, item2))
+			self.parent.AddToList(self.parent.GetCount(), (self.language, self.contrast, item1, item2))
 	
 	def OnKeyDown(self, event): 
 	# at the moment this only works when the panel is the object that is focussed (i.e. just clicked on/currently "active")
@@ -99,6 +99,7 @@ class DatabasePanel(wx.Panel):
 		wx.Panel.__init__(self, parent, size=PANEL_SIZE)
 		
 		self.options = options
+		self.cursor = parent.cursor
 		
 		self.SetBackgroundColour('#ededed')
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
@@ -110,20 +111,18 @@ class DatabasePanel(wx.Panel):
 		self.add = wx.Button(self, label=u"Add...")  # Generic label to be changed by child classes
 		self.search = wx.TextCtrl(self, value=u"<search>", size=(250, -1), style=wx.TE_PROCESS_ENTER)
 		
-		self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
-		self.Bind(wx.EVT_BUTTON, self.OnDelete, self.delete)
-		self.Bind(wx.EVT_BUTTON, self.OnSave, self.save)
-		self.Bind(wx.EVT_BUTTON, self.OnAdd, self.add)
-		self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, self.search)
-		#self.Bind(wx.EVT_TEXT, ..., self.search)  # We could build in auto-complete...
-		
 		self.itemList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(500,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 		for i, text in enumerate(self.options):
 			self.itemList.InsertColumn(col=i, heading=text)
 		self.itemList.SetColumnWidth(0, 100)
 		
-		#self.itemList.EnableAlternateRowColours(enable=True)
-		#self.itemList.EnableBellOnNoMatch(on=True)
+		self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
+		self.Bind(wx.EVT_BUTTON, self.OnDelete, self.delete)
+		self.Bind(wx.EVT_BUTTON, self.OnSave, self.save)
+		self.Bind(wx.EVT_BUTTON, self.OnAdd, self.add)
+		self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, self.search)
+		#self.Bind(wx.EVT_TEXT, ..., self.search)  # We could build in auto-complete...# play file on pressing enter when row highlighted
+		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnPlay, self.itemList)
 		
 		self.grid.Add(self.search, pos=(1,1), span=(1,3))
 		self.grid.Add(self.add, pos=(1,4))
@@ -135,8 +134,6 @@ class DatabasePanel(wx.Panel):
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.SetSizerAndFit(self.mainSizer)
 		
-		self.cursor = parent.cursor
-		
 		# POPUP MENUS
 		self.menu = wx.Menu()  # Labels will be dynamically changed as needed
 		self.itemList.Bind(wx.EVT_CONTEXT_MENU, self.OnShowPopup)
@@ -145,14 +142,27 @@ class DatabasePanel(wx.Panel):
 			item = self.menu.Append(-1, u"<placeholder>")
 			self.Bind(wx.EVT_MENU, self.OnPopupItemSelected, item)
 		
-	
-	def addToList(self, index, items):
+	# Wrappers for itemList access
+	def AddToList(self, index, items):
 		""" Add an item to the table """
 		self.itemList.InsertStringItem(index, items[0])
 		for i in range(1, len(items)):
 			self.itemList.SetStringItem(index, i, items[i])
 	
+	def GetFocused(self):
+		return self.itemList.GetFocusedItem()
 	
+	def GetFocusedText(self, column):
+		focus = self.GetFocused()
+		return self.itemList.GetItemText(focus, column)
+	
+	def GetText(self, row, column):
+		return self.itemList.GetItemText(row, column)
+	
+	def GetCount(self):
+		return self.itemList.GetItemCount()
+	
+	# Methods to be triggered by events
 	def OnShowPopup(self, event):
 		""" Show popup menu """
 		pos = self.ScreenToClient(event.GetPosition())
@@ -181,6 +191,7 @@ class DatabasePanel(wx.Panel):
 	def OnSave(self, event): raise NotImplementedError
 	def OnSearch(self, event): raise NotImplementedError
 	def OnDelete(self, event): raise NotImplementedError
+	def OnPlay(self, event): raise NotImplementedError
 
 
 class RecordingsPanel(DatabasePanel):
@@ -195,20 +206,15 @@ class RecordingsPanel(DatabasePanel):
 		self.cursor.execute(u"SELECT file, answer, language, speaker FROM recordings")
 		self.numOld = 0
 		for recording in self.cursor:
-			self.addToList(self.numOld, recording)
+			self.AddToList(self.numOld, recording)
 			self.numOld += 1
-		
-		# play file on pressing enter when row highlighted
-		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnPlay, self.itemList)
 		
 		self.allLanguages, _, self.allSpeakers = parent.metaData
 	
 	
 	def OnPlay(self, event):
 		'''Plays the sound file from the selected row.'''
-		x = self.itemList.GetFocusedItem()
-		print(x)
-		filename = self.itemList.GetItemText(item=x, col=0)
+		filename = self.GetFocusedText(0)
 		filename = pyphon.filepath(filename)
 		wx.Sound(filename).Play()
 
@@ -222,22 +228,22 @@ class RecordingsPanel(DatabasePanel):
 			if direc == pyphon.DATA_DIR:
 				direc = None
 			
-			i = self.itemList.GetItemCount()
+			i = self.GetCount()
 			for filename in dlg.GetFilenames():
 				print(filename)
 				# Only remember the directory if not the data directory
 				if direc:
 					filename = os.path.join(direc, filename)
 				# Add files to the end of the table
-				self.addToList(i, (filename,))
+				self.AddToList(i, (filename,))
 				i += 1
 	
 	def OnSave(self, event):
 		""" Currently, we save new files only """
 		for i in range(self.numOld):
 			pass
-		for i in range(self.numOld, self.itemList.GetItemCount()):
-			filename, answer, language, speaker = (self.itemList.GetItemText(i, j) for j in range(4))
+		for i in range(self.numOld, self.GetCount()):
+			filename, answer, language, speaker = (self.GetText(i, j) for j in range(4))
 			self.cursor.execute(u"INSERT INTO recordings VALUES (?,?,?,?)", (filename, speaker, language, answer))
 		"""
 		dlg = wx.MessageDialog(self, u"Save changes?".format(newStuff), u"Confirmation", wx.OK | wx.CANCEL)
@@ -259,7 +265,7 @@ class MinimalPairsPanel(DatabasePanel):
 		### Currently we load everything - later we need to do this based on search...
 		self.cursor.execute(u"SELECT language, contrast, item_1, item_2 FROM minimal_pairs")
 		for i, pair in enumerate(self.cursor):
-			self.addToList(i, pair)
+			self.AddToList(i, pair)
 		
 		self.allLanguages, self.allContrasts, _ = parent.metaData
 	

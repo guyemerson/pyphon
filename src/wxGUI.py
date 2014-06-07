@@ -209,8 +209,8 @@ class MainWindow(wx.Frame):
 			f.write(str(self.panel.sessionStats))
 			f.write("\n")
 		"""
-		dlg = wx.MessageDialog(self, "Jesus has changed your life.\nSave changes?", "Important", wx.YES | wx.NO | wx.ICON_QUESTION)
-		dlg.ShowModal()
+		#dlg = wx.MessageDialog(self, "Jesus has changed your life.\nSave changes?", "Important", wx.YES | wx.NO | wx.ICON_QUESTION)
+		#dlg.ShowModal()
 		self.Destroy()
 
 

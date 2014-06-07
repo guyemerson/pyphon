@@ -13,19 +13,19 @@ class MetadataPanel(wx.Panel):
 		self.SetBackgroundColour('#ededed')
 		
 		# boxes and headings
-		self.languagesHeading = wx.StaticText(self, label="Languages")
-		self.contrastsHeading = wx.StaticText(self, label="Contrasts")
-		self.speakersHeading = wx.StaticText(self, label="Speakers")
-		self.names = ["language", "contrast", "speaker"]
+		self.languagesHeading = wx.StaticText(self, label=u"Languages")
+		self.contrastsHeading = wx.StaticText(self, label=u"Contrasts")
+		self.speakersHeading = wx.StaticText(self, label=u"Speakers")
+		self.names = [u"language", u"contrast", u"speaker"]
 		
 		self.languages = wx.ListBox(self, -1)
 		self.contrasts = wx.ListBox(self, -1)
 		self.speakers =  wx.ListBox(self, -1)
 		self.boxes = [self.languages, self.contrasts, self.speakers]
 		
-		self.addLanguage = wx.Button(self, label="Add language")
-		self.addContrast = wx.Button(self, label="Add contrast")
-		self.addSpeaker  = wx.Button(self, label="Add speaker")
+		self.addLanguage = wx.Button(self, label=u"Add language")
+		self.addContrast = wx.Button(self, label=u"Add contrast")
+		self.addSpeaker  = wx.Button(self, label=u"Add speaker")
 
 		self.Bind(wx.EVT_LISTBOX, self.OnSelectLanguage, self.languages)
 		self.Bind(wx.EVT_LISTBOX_DCLICK, self.OnLanguageExample, self.languages)
@@ -39,7 +39,7 @@ class MetadataPanel(wx.Panel):
 		# Fetch items from database
 		self.cursor = parent.cursor
 		self.metaData = parent.metaData
-		self.tables = ("language_set", "contrast_set", "speaker_set")
+		self.tables = (u"language_set", u"contrast_set", u"speaker_set")
 		self.allLanguages, self.allContrasts, self.allSpeakers = self.metaData
 		
 		self.languages.SetItems(self.allLanguages)
@@ -65,8 +65,9 @@ class MetadataPanel(wx.Panel):
 		self.menus = [wx.Menu() for _ in range(3)]
 		self.showPopupList = [self.OnShowPopup(i) for i in range(3)]
 		self.popupItemSelectedList = [self.OnPopupItemSelected(i) for i in range(3)]
+		self.popupOptions = (u"rename", u"delete") # all three popup menus have the same options, 'delete' and 'rename'
 		for i, menu in enumerate(self.menus):
-			for text in ["rename", "delete"]: # all three popup menus have the same options, 'delete' and 'rename'
+			for text in self.popupOptions:
 				item = menu.Append(-1, text)
 				self.Bind(wx.EVT_MENU, self.popupItemSelectedList[i], item)
 			self.boxes[i].Bind(wx.EVT_CONTEXT_MENU, self.showPopupList[i])
@@ -91,11 +92,11 @@ class MetadataPanel(wx.Panel):
 		'''Brings up the dialog box appropriate to the selected option in the context menu.'''
 		theBox = self.boxes[i]
 		index = theBox.GetSelections()[0]
-		selection = theBox.GetString(index)
+		selection = unicode(theBox.GetString(index))
 		print index, selection
 		
-		if action == "delete":
-			dlg = wx.MessageDialog(self, "Really delete item '{}'?".format(selection), "Delete item")
+		if action == u"delete":
+			dlg = wx.MessageDialog(self, u"Really delete item '{}'?".format(selection), u"Delete item")
 			if dlg.ShowModal() == wx.ID_OK:
 				theBox.Delete(index)
 				# Remove from python dictionary and from database:
@@ -103,18 +104,18 @@ class MetadataPanel(wx.Panel):
 					del self.allLanguages[index]
 					del self.allContrasts[selection]
 					del self.allSpeakers[selection]
-					self.cursor.execute("DELETE FROM language_set WHERE language = ?", (selection,))
+					self.cursor.execute(u"DELETE FROM language_set WHERE language = ?", (selection,))
 					self.contrasts.Clear()
 					self.speakers.Clear()
 				else:
 					del self.metaData[i][self.chosenLanguage][index]
-					self.cursor.execute("DELETE FROM {} WHERE language = ? AND {} = ?".format(self.tables[i], self.names[i]), (self.chosenLanguage, selection))
+					self.cursor.execute(u"DELETE FROM {} WHERE language = ? AND {} = ?".format(self.tables[i], self.names[i]), (self.chosenLanguage, selection))
 			dlg.Destroy()
 		
-		elif action == "rename":
-			dlg = wx.TextEntryDialog(self, "Enter the new name for item '{}' below.".format(selection), "Rename item")
+		elif action == u"rename":
+			dlg = wx.TextEntryDialog(self, u"Enter the new name for item '{}' below.".format(selection), u"Rename item")
 			if dlg.ShowModal() == wx.ID_OK:
-				entry = dlg.GetValue()
+				entry = unicode(dlg.GetValue())
 				newlist = theBox.GetStrings() # all the listbox's current strings
 				# replace selected string with user-entered string
 				newlist = [entry if x == selection else x for x in newlist]
@@ -124,10 +125,10 @@ class MetadataPanel(wx.Panel):
 					self.allContrasts[entry] = self.allContrasts.pop(selection)
 					self.allSpeakers[entry]  = self.allSpeakers.pop(selection)
 					self.chosenLanguage = entry
-					self.cursor.execute("UPDATE language_set SET language = ? WHERE language = ?", (entry, selection))
+					self.cursor.execute(u"UPDATE language_set SET language = ? WHERE language = ?", (entry, selection))
 				else:
 					self.metaData[i][self.chosenLanguage][index] = entry
-					self.cursor.execute("UPDATE {0} SET {1} = ? WHERE language = ? AND {1} = ?".format(self.tables[i], self.names[i]), (entry, self.chosenLanguage, selection))
+					self.cursor.execute(u"UPDATE {0} SET {1} = ? WHERE language = ? AND {1} = ?".format(self.tables[i], self.names[i]), (entry, self.chosenLanguage, selection))
 				
 				# rewrite box contents
 				theBox.Clear()
@@ -144,17 +145,17 @@ class MetadataPanel(wx.Panel):
 		'''Adds a language or contrast or speaker to the list.'''
 		box = self.boxes[i]
 		variable = self.names[i]
-		text = wx.GetTextFromUser(message=("Enter a new {}".format(variable)), caption=("New {}".format(variable)), default_value="", parent=None)
-		if text != "":
+		text = unicode(wx.GetTextFromUser(message=(u"Enter a new {}".format(variable)), caption=(u"New {}".format(variable)), default_value="", parent=None))
+		if text != u"":
 			box.Append(text)
 			if i == 0:
 				self.allLanguages.append(text)
 				self.allContrasts[text] = []
 				self.allSpeakers[text] = []
-				self.cursor.execute("INSERT INTO language_set VALUES (?)", (text,))
+				self.cursor.execute(u"INSERT INTO language_set VALUES (?)", (text,))
 			else:
 				self.metaData[i][self.chosenLanguage].append(text)
-				self.cursor.execute("INSERT INTO {} VALUES (?, ?)".format(self.tables[i]), (self.chosenLanguage, text))
+				self.cursor.execute(u"INSERT INTO {} VALUES (?, ?)".format(self.tables[i]), (self.chosenLanguage, text))
 	
 	def OnSelectLanguage(self, event):
 		'''Gets speakers and contrasts for that language.'''
@@ -174,6 +175,6 @@ class MetadataPanel(wx.Panel):
 	def OnExample(self, i, index):
 		'''Plays the sound of that speaker saying a word, or a word in that language, or a pair of contrasting words for that contrast.'''
 		theBox = self.boxes[i]
-		play = theBox.GetString(index)
-		print ("You just asked for an example of {}".format(play))
+		play = unicode(theBox.GetString(index))
+		print (u"You just asked for an example of {}".format(play))
 		# Finish me, Guy! :)

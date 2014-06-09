@@ -266,6 +266,7 @@ class RecordingsPanel(DatabasePanel):
 			new = self.GetRow(i)
 			if new != old:
 				self.cursor.execute(u"UPDATE recordings SET {} = ?, {} = ?, {} = ?, {} = ? WHERE file = ?".format(*self.fields), new + old[0:1])
+				self.original[i] = new
 		# Add new files
 		for i in range(len(self.original), self.GetCount()):
 			recording = self.GetRow(i)
@@ -308,6 +309,7 @@ class MinimalPairsPanel(DatabasePanel):
 			new = self.GetRow(i)
 			if new != old:
 				self.cursor.execute(u"UPDATE minimal_pairs SET {0} = ?, {1} = ?, {2} = ?, {3} = ? WHERE {0} = ? AND {1} = ? AND {2} = ? AND {3} = ?".format(*self.fields), new + old)
+				self.original[i] = new
 		dlg = wx.MessageDialog(self, u"Changes successfully saved", u"Confirmation", wx.OK)
 		dlg.ShowModal()
 		dlg.Destroy()

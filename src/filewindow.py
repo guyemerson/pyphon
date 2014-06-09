@@ -1,8 +1,10 @@
-import wx, os
+import wx, os, sqlite3
 import wx.lib.mixins.listctrl as listmix
 wx.USE_UNICODE = 1
 
 import pyphon, metadatapanel
+
+from itertools import chain
 
 PANEL_SIZE = (800,600)
 
@@ -38,11 +40,11 @@ class AddPairsDialog(wx.Dialog):
 		self.chooseLanguage = wx.ComboBox(self.panel, size=(140,-1), choices=parent.allLanguages, style=wx.CB_READONLY)
 		self.chooseContrast = wx.ComboBox(self.panel, size=(140,-1), choices=["-"], style=wx.CB_READONLY)
 		self.first = wx.TextCtrl(self.panel, value=u"", size=(60,-1))
-		self.first.SetFocus()
-		self.second = wx.TextCtrl(self.panel, value=u"", size=(60,-1))
+		self.second = wx.TextCtrl(self.panel, value=u"", size=(60,-1), style=wx.TE_PROCESS_ENTER)
 		self.addPair = wx.Button(self.panel, label=u"Add pair")
 		
 		self.Bind(wx.EVT_BUTTON, self.OnAddPair, self.addPair)
+		self.Bind(wx.EVT_TEXT_ENTER, self.OnAddPair, self.second)
 		self.panel.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 		self.Bind(wx.EVT_COMBOBOX, self.OnLanguage, self.chooseLanguage)
 		self.Bind(wx.EVT_COMBOBOX, self.OnContrast, self.chooseContrast)
@@ -52,8 +54,11 @@ class AddPairsDialog(wx.Dialog):
 		self.grid.Add(self.first, pos=(3,1))
 		self.grid.Add(self.second, pos=(3,2))
 		self.grid.Add(self.addPair, pos=(4,1))
+		
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.panel.SetSizerAndFit(self.mainSizer)
+		
+		self.chooseLanguage.SetFocus()
 
 	def OnLanguage(self, event):
 		self.language = unicode(event.GetString())
@@ -67,6 +72,7 @@ class AddPairsDialog(wx.Dialog):
 	
 	def OnAddPair(self, event):
 		item1, item2 = unicode(self.first.Value).strip(), unicode(self.second.Value).strip()
+		entry = (self.language, self.contrast, item1, item2)
 		
 		if not (self.language and self.contrast):
 			dlg = wx.MessageDialog(self.panel, u"Please specify the language and contrast.", u"Error", wx.OK | wx.ICON_ERROR)
@@ -79,8 +85,11 @@ class AddPairsDialog(wx.Dialog):
 			dlg.Destroy()
 		
 		else:
-			self.cursor.execute(u"INSERT INTO minimal_pairs VALUES (?, ?, ?, ?)", (self.language, self.contrast, item1, item2))
-			self.parent.AddToList(self.parent.GetCount(), (self.language, self.contrast, item1, item2))
+			self.cursor.execute(u"INSERT INTO minimal_pairs VALUES (?, ?, ?, ?)", entry)
+			self.parent.AddToList(self.parent.GetCount(), entry)
+			self.parent.original.append(entry)
+			self.first.SetFocus()
+			self.first.SelectAll()
 	
 	def OnKeyDown(self, event): 
 	# at the moment this only works when the panel is the object that is focussed (i.e. just clicked on/currently "active")
@@ -88,19 +97,23 @@ class AddPairsDialog(wx.Dialog):
 		print ("you pressed a key")
 		key = event.GetKeyCode()
 		if key == wx.WXK_RETURN:
-			self.AddPair()
+			self.OnAddPair(event)
 	
 
 class DatabasePanel(wx.Panel):
 	'''
 	Base panel for adding/editing files and minimal pairs
 	'''
-	def __init__(self, parent, options):
+	def __init__(self, parent, headings):
 		wx.Panel.__init__(self, parent, size=PANEL_SIZE)
 		
-		self.options = options
+		self.headings = headings
 		self.cursor = parent.cursor
 		
+		# To store the original records before user editing
+		self.original = []
+		
+		# GUI code #
 		self.SetBackgroundColour('#ededed')
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
@@ -112,7 +125,7 @@ class DatabasePanel(wx.Panel):
 		self.search = wx.TextCtrl(self, value=u"<search>", size=(250, -1), style=wx.TE_PROCESS_ENTER)
 		
 		self.itemList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(500,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-		for i, text in enumerate(self.options):
+		for i, text in enumerate(self.headings):
 			self.itemList.InsertColumn(col=i, heading=text)
 		self.itemList.SetColumnWidth(0, 100)
 		
@@ -138,7 +151,7 @@ class DatabasePanel(wx.Panel):
 		self.menu = wx.Menu()  # Labels will be dynamically changed as needed
 		self.itemList.Bind(wx.EVT_CONTEXT_MENU, self.OnShowPopup)
 		
-		for i in range(len(self.options)):
+		for i in range(len(self.headings)):
 			item = self.menu.Append(-1, u"<placeholder>")
 			self.Bind(wx.EVT_MENU, self.OnPopupItemSelected, item)
 		
@@ -152,12 +165,19 @@ class DatabasePanel(wx.Panel):
 	def GetFocused(self):
 		return self.itemList.GetFocusedItem()
 	
-	def GetFocusedText(self, column):
-		focus = self.GetFocused()
-		return self.itemList.GetItemText(focus, column)
-	
 	def GetText(self, row, column):
 		return self.itemList.GetItemText(row, column)
+	
+	def GetRow(self, row):
+		return tuple(self.GetText(row, i) for i in range(len(self.headings)))
+	
+	def GetFocusedText(self, column):
+		focus = self.GetFocused()
+		return self.GetText(focus, column)
+	
+	def GetFocusedRow(self):
+		focus = self.GetFocused()
+		return self.GetRow(focus)
 	
 	def GetCount(self):
 		return self.itemList.GetItemCount()
@@ -199,15 +219,15 @@ class RecordingsPanel(DatabasePanel):
 	View and edit metadata for recordings
 	"""
 	def __init__(self, parent):
-		DatabasePanel.__init__(self, parent=parent, options=(u"Filename", u"Answer", u"Language", u"Speaker"))
+		DatabasePanel.__init__(self, parent=parent, headings=(u"Filename", u"Answer", u"Language", u"Speaker"))
 		self.add.Label = u"Add files..."
+		self.fields = ("file", "answer", "language", "speaker")
 		
 		### Currently we load everything - later we need to do this based on search...
 		self.cursor.execute(u"SELECT file, answer, language, speaker FROM recordings")
-		self.numOld = 0
 		for recording in self.cursor:
-			self.AddToList(self.numOld, recording)
-			self.numOld += 1
+			self.AddToList(len(self.original), recording)
+			self.original.append(recording)
 		
 		self.allLanguages, _, self.allSpeakers = parent.metaData
 	
@@ -239,18 +259,23 @@ class RecordingsPanel(DatabasePanel):
 				i += 1
 	
 	def OnSave(self, event):
-		""" Currently, we save new files only """
-		for i in range(self.numOld):
-			pass
-		for i in range(self.numOld, self.GetCount()):
-			filename, answer, language, speaker = (self.GetText(i, j) for j in range(4))
+		""" Update existing files, and add new files """
+		# Update existing files
+		for i in range(len(self.original)):
+			old = self.original[i]
+			new = self.GetRow(i)
+			if new != old:
+				self.cursor.execute(u"UPDATE recordings SET {} = ?, {} = ?, {} = ?, {} = ? WHERE file = ?".format(*self.fields), new + old[0:1])
+		# Add new files
+		for i in range(len(self.original), self.GetCount()):
+			recording = self.GetRow(i)
+			filename, answer, language, speaker = recording
 			self.cursor.execute(u"INSERT INTO recordings VALUES (?,?,?,?)", (filename, speaker, language, answer))
-		"""
-		dlg = wx.MessageDialog(self, u"Save changes?".format(newStuff), u"Confirmation", wx.OK | wx.CANCEL)
-		if dlg.ShowModal() == wx.ID_OK:
-			print (u"You want to put some stuff in the database. We've taken note and will have customer services call you.")
+			self.original.append(recording)
+		# We could catch sqlite3.IntegrityError to inform the user when something goes wrong
+		dlg = wx.MessageDialog(self, u"Changes successfully saved", u"Confirmation", wx.OK)
+		dlg.ShowModal()
 		dlg.Destroy()
-		"""
 
 
 class MinimalPairsPanel(DatabasePanel):
@@ -258,23 +283,41 @@ class MinimalPairsPanel(DatabasePanel):
 	View and edit minimal pairs
 	"""
 	def __init__(self, parent):
-		DatabasePanel.__init__(self, parent=parent, options=(u"Language", u"Contrast", u"Item 1", u"Item 2"))
+		DatabasePanel.__init__(self, parent=parent, headings=(u"Language", u"Contrast", u"Item 1", u"Item 2"))
+		self.fields = ("language", "contrast", "item_1", "item_2")
 		
 		self.add.Label = u"Add pairs..."
 
 		### Currently we load everything - later we need to do this based on search...
 		self.cursor.execute(u"SELECT language, contrast, item_1, item_2 FROM minimal_pairs")
-		for i, pair in enumerate(self.cursor):
-			self.AddToList(i, pair)
+		for i, entry in enumerate(self.cursor):
+			self.AddToList(i, entry)
+			self.original.append(entry)
 		
 		self.allLanguages, self.allContrasts, _ = parent.metaData
-	
-	
+		
 	def OnAdd(self, event):
 		dlg = AddPairsDialog(self, u"Add Pairs", size=(300,200))
 		dlg.ShowModal()
 		dlg.Destroy()
-
+	
+	def OnSave(self, event):
+		""" Update existing pairs """
+		for i in range(len(self.original)):
+			old = self.original[i]
+			new = self.GetRow(i)
+			if new != old:
+				self.cursor.execute(u"UPDATE minimal_pairs SET {0} = ?, {1} = ?, {2} = ?, {3} = ? WHERE {0} = ? AND {1} = ? AND {2} = ? AND {3} = ?".format(*self.fields), new + old)
+		dlg = wx.MessageDialog(self, u"Changes successfully saved", u"Confirmation", wx.OK)
+		dlg.ShowModal()
+		dlg.Destroy()
+	
+	"""
+	To reduce code redundancy, we could use something like this...
+	def SaveQuery(self, old, new):
+		pass
+	... which would be called by a method in DatabasePanel
+	"""
 
 
 class FileWindow(wx.Frame):
@@ -290,8 +333,8 @@ class FileWindow(wx.Frame):
 		notebook.AddPage(metadatapanel.MetadataPanel(notebook), u"Language info")
 		notebook.AddPage(RecordingsPanel(notebook), u"Recordings")
 		notebook.AddPage(MinimalPairsPanel(notebook), u"Minimal pairs")
-        #notebook.AddPage(databasegridpanel.AddDataGridPanel(notebook), "Recordings")
-        #notebook.AddPage(databasegridpanel.MinimalPairsGridPanel(notebook), "Minimal pairs")
+		#notebook.AddPage(databasegridpanel.AddDataGridPanel(notebook), "Recordings")
+		#notebook.AddPage(databasegridpanel.MinimalPairsGridPanel(notebook), "Minimal pairs")
 	
 class FileNotebook(wx.Notebook):
 	def __init__(self, parent):

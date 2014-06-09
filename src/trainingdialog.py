@@ -8,27 +8,27 @@ class TrainingDialog(wx.Dialog):
 	'''
 	This is the dialogue box where training happens.
 	'''
-	def __init__(self, parentPanel, title, size, cursor, language, contrast):
-		wx.Dialog.__init__(self, parent=parentPanel, title=title, size=size)
+	def __init__(self, parent, title, size):
+		wx.Dialog.__init__(self, parent=parent, title=title, size=size)
 		
 		"""
 		cursor - SQLite3 database cursor object
 		language - chosen language for training session
 		contrast - chosen contrast for training session
 		"""
-		self.parent = parentPanel
+		self.parent = parent
 		self.size = size
-		print(language)
-		print(contrast)
+		print(parent.language)
+		print(parent.contrast)
 		# We store all information about test samples in the list self.items
-		cursor.execute('''SELECT file, item_1, item_2, answer FROM
+		parent.cursor.execute('''SELECT file, item_1, item_2, answer FROM
 			((SELECT item_1, item_2 FROM minimal_pairs
 				WHERE language = ? AND contrast = ?)
 			JOIN (SELECT file, answer FROM recordings
 				WHERE language = ?)
 			ON item_1 = answer OR item_2 = answer)
-			''', (language, contrast, language))
-		self.items = list(cursor)
+			''', (parent.language, parent.contrast, parent.language))
+		self.items = list(parent.cursor)
 		print(self.items)
 		
 		# Information about the current sample
@@ -128,24 +128,25 @@ class TrainingDialog(wx.Dialog):
 	def OnNext(self, event):
 		# allow the user to answer
 		self.pendingAnswer = True
+		
 		# Take a random sample, and store it
 		filename, item_1, item_2, answer = random.choice(self.items)
-		#filename, options, answer = random.choice(self.items)
 		self.file = pyphon.filepath(filename)
-		#self.options = options.split('|', 1)
 		self.options = [item_1, item_2]
 		self.answer = answer
 		print(self.file)
 		print(self.options)
 		print(self.answer)
 		assert len(self.options) == 2
+		
 		# Relabel the buttons
-		self.moo.Label = self.options[0].title()
-		self.quack.Label = self.options[1].title()
+		self.moo.Label = self.options[0]
+		self.quack.Label = self.options[1]
 		self.moo.Show()
 		self.quack.Show()
 		self.feedback.Label = ""
 		self.next.Hide()
+		
 		# Play the file
 		wx.Sound(self.file).Play()
 	

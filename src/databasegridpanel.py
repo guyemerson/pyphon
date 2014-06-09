@@ -16,10 +16,10 @@ class SimpleGrid(wx.grid.Grid):
 
 
 class DatabaseGridPanel(wx.Panel):
-	def __init__(self, parent, cursor, options):
+	def __init__(self, parent, headings):
 		wx.Panel.__init__(self, parent, size=(400,400))
 		
-		self.options = options
+		self.headings = headings
 		
 		self.panel = wx.Panel(self, size=(300,300))
 		self.panel.SetBackgroundColour('#ededed')
@@ -51,10 +51,10 @@ class DatabaseGridPanel(wx.Panel):
 
 
 class AddDataGridPanel(DatabaseGridPanel):
-	def __init__(self, parent, cursor):
-		DatabaseGridPanel.__init__(self, parent=parent, cursor=cursor, options=["Filename", "Answer", "Language", "Speaker"])
+	def __init__(self, parent):
+		DatabaseGridPanel.__init__(self, parent=parent, headings=["Filename", "Answer", "Language", "Speaker"])
 		
-		for i, heading in enumerate(self.options):
+		for i, heading in enumerate(self.headings):
 			self.sheet.SetColLabelValue(i, heading)
 		self.sheet.SetRowLabelValue(0, "First")
 
@@ -64,8 +64,8 @@ class AddDataGridPanel(DatabaseGridPanel):
 
 
 class MinimalPairsGridPanel(DatabaseGridPanel):
-	def __init__(self, parent, cursor):
-		DatabaseGridPanel.__init__(self, parent=parent, cursor=cursor, options=["Language", "Contrast", "Option 1", "Option 2"])
+	def __init__(self, parent):
+		DatabaseGridPanel.__init__(self, parent=parent, headings=["Language", "Contrast", "Option 1", "Option 2"])
 
 
 class TestFrame(wx.Frame):
@@ -74,7 +74,7 @@ class TestFrame(wx.Frame):
 		
 		#grid = SimpleGrid(self)
 		
-		self.panel = AddDataGridPanel(self, cursor="hello")
+		self.panel = AddDataGridPanel(self)
 		
 		
 #app = wx.App(False)

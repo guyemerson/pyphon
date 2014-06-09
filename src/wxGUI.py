@@ -75,7 +75,7 @@ class MainWindowPanel(wx.Panel):
 		# Open a new window
 		initStats = copy(self.sessionStats)
 		trainingTitle = self.language + " | " + self.contrast
-		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(GOLDEN*300)), self.cursor, self.language, self.contrast)
+		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(GOLDEN*300)))
 		dlg.ShowModal()
 		dlg.Destroy()
 		# Training feedback message

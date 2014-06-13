@@ -74,16 +74,17 @@ class MainWindowPanel(wx.Panel):
 		assert self.language in self.trainLanguages
 		assert self.contrast in self.trainContrasts
 		
-		#initStats = copy(self.sessionStats)
-		#self.Hide()
-		#self.parent.trainingPanel.Show()
+		initStats = copy(self.sessionStats)
+		self.Hide()
+		self.parent.trainingPanel.Show()
 		
 		# Open a new window
-		initStats = copy(self.sessionStats)
-		trainingTitle = self.language + " | " + self.contrast
-		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(GOLDEN*300)))
-		dlg.ShowModal()
-		dlg.Destroy()
+		#initStats = copy(self.sessionStats)
+		#trainingTitle = self.language + " | " + self.contrast
+		#dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(GOLDEN*300)))
+		#dlg.ShowModal()
+		#dlg.Destroy()
+		
 		# Training feedback message
 		try:
 			trainedTrue = self.sessionStats[True]  - initStats[True]
@@ -148,8 +149,8 @@ class MainWindow(wx.Frame):
 		# PANEL AND MENUS
 		
 		self.mainPanel = MainWindowPanel(self)
-		#self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
-		#self.trainingPanel.Hide()
+		self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
+		self.trainingPanel.Hide()
 		self.mainPanel.Show()
 		
 		self.CreateStatusBar()   # would be nice to have Golden Ratio proportions

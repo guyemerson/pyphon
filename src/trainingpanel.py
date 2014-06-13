@@ -112,11 +112,34 @@ class TrainingPanel(wx.Panel):
 		self.quack.Hide()
 		self.next.Show()
 	
+	def OnChoice2(self, choice):
+		"""
+		Button press depending on choice (index in self.options)
+		"""
+		if self.pendingAnswer == False: return # stops people from being able to answer the same question multiple times with button presses
+		print(self.options[choice])
+		# Compare user's choice with the correct answer
+		for button in [self.moo, self.quack]:
+			if button.Label == self.answer:
+				button.SetForegroundColour((0,255,0))
+				self.parent.mainPanel.sessionStats[True] += 1
+			else:
+				button.SetForegroundColour((255,0,0))
+				self.parent.mainPanel.sessionStats[False] += 1
+		print(self.options[choice] == self.answer)
+		print(self.parent.sessionStats)
+		# Give feedback to user
+		self.feedback.Label = self.answer.title()
+		# Change the buttons
+		self.moo.Hide()
+		self.quack.Hide()
+		self.next.Show()
+	
 	def OnMoo(self, event):
-		self.OnChoice(0)
+		self.OnChoice2(0)
 	
 	def OnQuack(self, event):
-		self.OnChoice(1)
+		self.OnChoice2(1)
 		
 		
 	def OnNext(self, event):

@@ -4,7 +4,7 @@ from __future__ import division
 import wx, datetime
 from copy import copy
 
-import trainingdialog, filewindow, statsdialog, optionsdialog, metadatapanel, databasegridpanel
+import trainingdialog, filewindow, statsdialog, optionsdialog, metadatapanel, trainingpanel
 
 wx.USE_UNICODE = 1
 GOLDEN = 0.61803398875
@@ -25,6 +25,7 @@ class MainWindowPanel(wx.Panel):
 		"""
 		wx.Panel.__init__(self, parent, size=(400,int(400*GOLDEN)))
 		
+		self.parent = parent
 		self.SetBackgroundColour("#ededed")
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 
@@ -72,6 +73,11 @@ class MainWindowPanel(wx.Panel):
 		# Check that the current settings are valid
 		assert self.language in self.trainLanguages
 		assert self.contrast in self.trainContrasts
+		
+		#initStats = copy(self.sessionStats)
+		#self.Hide()
+		#self.parent.trainingPanel.Show()
+		
 		# Open a new window
 		initStats = copy(self.sessionStats)
 		trainingTitle = self.language + " | " + self.contrast
@@ -141,7 +147,10 @@ class MainWindow(wx.Frame):
 		
 		# PANEL AND MENUS
 		
-		self.panel = MainWindowPanel(self)
+		self.mainPanel = MainWindowPanel(self)
+		#self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
+		#self.trainingPanel.Hide()
+		self.mainPanel.Show()
 		
 		self.CreateStatusBar()   # would be nice to have Golden Ratio proportions
 		

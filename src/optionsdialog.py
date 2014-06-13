@@ -26,6 +26,6 @@ class OptionsDialog(wx.Dialog):
 		self.panel.SetSizerAndFit(self.mainSizer)
 		
 	def OnOK(self, event):
-		self.parent.panel.allowProfanity = self.profanity.GetValue()
-		print (self.parent.panel.allowProfanity)
+		self.parent.mainPanel.allowProfanity = self.profanity.GetValue()
+		print (self.parent.mainPanel.allowProfanity)
 		self.Close()

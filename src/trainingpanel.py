@@ -83,6 +83,7 @@ class TrainingPanel(wx.Panel):
 
 	def OnChoice(self, choice):
 		"""
+		DISUSED in favour of OnChoice2.
 		Button press depending on choice (index in self.options)
 		"""
 		if self.pendingAnswer == False: return # stops people from being able to answer the same question multiple times with button presses
@@ -110,20 +111,21 @@ class TrainingPanel(wx.Panel):
 		if self.pendingAnswer == False: return # stops people from being able to answer the same question multiple times with button presses
 		print(self.options[choice])
 		# Compare user's choice with the correct answer
+		if self.options[choice] == self.answer:
+			self.parent.mainPanel.sessionStats[True] += 1
+		else:
+			self.parent.mainPanel.sessionStats[False] += 1
+		# Colour buttons backgrounds for feedback
 		for button in [self.moo, self.quack]:
 			if button.Label == self.answer:
-				button.SetForegroundColour((0,255,0))
-				self.parent.mainPanel.sessionStats[True] += 1
+				button.SetBackgroundColour((0,255,0))
 			else:
-				button.SetForegroundColour((255,0,0))
-				self.parent.mainPanel.sessionStats[False] += 1
+				button.SetBackgroundColour((255,0,0))
 		print(self.options[choice] == self.answer)
-		print(self.parent.sessionStats)
-		# Give feedback to user
-		self.feedback.Label = self.answer.title()
+		print(self.parent.mainPanel.sessionStats)
 		# Change the buttons
-		self.moo.Hide()
-		self.quack.Hide()
+		self.moo.Disable()
+		self.quack.Disable()
 		self.next.Show()
 	
 	def OnMoo(self, event):
@@ -136,6 +138,10 @@ class TrainingPanel(wx.Panel):
 	def OnNext(self, event):
 		# allow the user to answer
 		self.pendingAnswer = True
+		
+		# reset the background colour of the buttons
+		self.moo.SetBackgroundColour(wx.NullColour)
+		self.quack.SetBackgroundColour(wx.NullColour)
 		
 		# Take a random sample, and store it
 		filename, item_1, item_2, answer = random.choice(self.items)
@@ -150,8 +156,10 @@ class TrainingPanel(wx.Panel):
 		# Relabel the buttons
 		self.moo.Label = self.options[0]
 		self.quack.Label = self.options[1]
-		self.moo.Show()
-		self.quack.Show()
+		#self.moo.Show()
+		#self.quack.Show()
+		self.moo.Enable()
+		self.quack.Enable()
 		self.feedback.Label = ""
 		self.next.Hide()
 		
@@ -162,6 +170,8 @@ class TrainingPanel(wx.Panel):
 	def OnStart(self, event):
 		if self.start.Label == "Start":
 			self.start.Label = "Stop"
+			self.moo.Show()
+			self.quack.Show()
 			self.OnNext(event)
 		elif self.start.Label == "Stop":
 			self.start.Label = "Start"

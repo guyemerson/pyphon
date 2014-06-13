@@ -55,6 +55,9 @@ class MainWindowPanel(wx.Panel):
 		self.Bind(wx.EVT_COMBOBOX, self.OnLanguage, self.chooseLanguage)
 		self.Bind(wx.EVT_COMBOBOX, self.OnContrast, self.chooseContrast)
 		
+		self.train.Disable()
+		self.chooseContrast.Disable()
+		
 		self.sessionFeedback = wx.StaticText(self, label="You have not trained so far today.")
 		
 		# GRID CODE
@@ -93,17 +96,21 @@ class MainWindowPanel(wx.Panel):
 	def OnLanguage(self, event):
 		# Save the chosen language
 		print (event.GetString())
-		self.language = event.GetString()
-		# Find all contrasts for the language
-		self.trainContrasts = self.allContrasts[self.language]
-		print (self.trainContrasts)
-		# Update the contrast dropdown menu
-		self.chooseContrast.SetItems(self.trainContrasts)
+		if self.language != event.GetString():
+			self.language = event.GetString()
+			self.train.Disable()
+			# Find all contrasts for the language
+			self.trainContrasts = self.allContrasts[self.language]
+			print (self.trainContrasts)
+			# Update the contrast dropdown menu
+			self.chooseContrast.SetItems(self.trainContrasts)
+		self.chooseContrast.Enable()
 
 	def OnContrast(self, event):
 		# Save the chosen contrast
 		print (event.GetString())
 		self.contrast = event.GetString()
+		self.train.Enable()
 		
 
 

@@ -19,9 +19,9 @@ class MetadataPanel(wx.Panel):
 		self.speakersHeading = wx.StaticText(self, label=u"Speakers")
 		self.names = [u"language", u"contrast", u"speaker"]
 		
-		self.languages = wx.ListBox(self, -1)
-		self.contrasts = wx.ListBox(self, -1)
-		self.speakers =  wx.ListBox(self, -1)
+		self.languages = wx.ListBox(self, size=(130,200))
+		self.contrasts = wx.ListBox(self, size=(130,200))
+		self.speakers =  wx.ListBox(self, size=(130,200))
 		self.boxes = [self.languages, self.contrasts, self.speakers]
 		
 		self.addLanguage = wx.Button(self, label=u"Add language")

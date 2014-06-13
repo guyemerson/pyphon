@@ -6,7 +6,7 @@ import pyphon, metadatapanel
 
 from itertools import chain
 
-PANEL_SIZE = (800,600)
+PANEL_SIZE = (600,620)
 
 class EditableListCtrl(wx.ListCtrl, listmix.TextEditMixin):
 	''' 
@@ -124,10 +124,10 @@ class DatabasePanel(wx.Panel):
 		self.add = wx.Button(self, label=u"Add...")  # Generic label to be changed by child classes
 		self.search = wx.TextCtrl(self, value=u"<search>", size=(250, -1), style=wx.TE_PROCESS_ENTER)
 		
-		self.itemList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(500,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+		self.itemList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(450,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 		for i, text in enumerate(self.headings):
 			self.itemList.InsertColumn(col=i, heading=text)
-		self.itemList.SetColumnWidth(0, 100)
+		self.itemList.SetColumnWidth(0, 150)
 		
 		self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
 		self.Bind(wx.EVT_BUTTON, self.OnDelete, self.delete)

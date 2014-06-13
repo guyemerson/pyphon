@@ -74,6 +74,7 @@ class MainWindowPanel(wx.Panel):
 		assert self.language in self.trainLanguages
 		assert self.contrast in self.trainContrasts
 		
+		# Switch panel
 		self.initStats = copy(self.sessionStats)
 		self.Hide()
 		self.parent.trainingPanel.prepareSession()

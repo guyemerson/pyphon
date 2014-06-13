@@ -4,7 +4,7 @@ from __future__ import division
 import wx, datetime
 from copy import copy
 
-import trainingdialog, filewindow, statsdialog, optionsdialog, metadatapanel, trainingpanel
+import filewindow, statsdialog, optionsdialog, metadatapanel, trainingpanel
 
 wx.USE_UNICODE = 1
 GOLDEN = 0.61803398875
@@ -74,20 +74,16 @@ class MainWindowPanel(wx.Panel):
 		assert self.language in self.trainLanguages
 		assert self.contrast in self.trainContrasts
 		
-		#initStats = copy(self.sessionStats)
-		#self.Hide()
-		#self.parent.trainingPanel.Show()
+		self.initStats = copy(self.sessionStats)
+		self.Hide()
+		self.parent.trainingPanel.prepareSession()
+		self.parent.trainingPanel.Show()
 		
-		# Open a new window
-		initStats = copy(self.sessionStats)
-		trainingTitle = self.language + " | " + self.contrast
-		dlg = trainingdialog.TrainingDialog(self, trainingTitle, (270,int(GOLDEN*300)))
-		dlg.ShowModal()
-		dlg.Destroy()
+	def feedback(self):
 		# Training feedback message
 		try:
-			trainedTrue = self.sessionStats[True]  - initStats[True]
-			trainedTotal = trainedTrue + self.sessionStats[False] - initStats[False]
+			trainedTrue = self.sessionStats[True]  - self.initStats[True]
+			trainedTotal = trainedTrue + self.sessionStats[False] - self.initStats[False]
 			proportion = trainedTrue / trainedTotal
 			self.sessionFeedback.SetLabel("In your last session you trained a total of {} reps \nand got {:.0%} correct.".format(trainedTotal, proportion))
 		except ZeroDivisionError:
@@ -148,8 +144,8 @@ class MainWindow(wx.Frame):
 		# PANEL AND MENUS
 		
 		self.mainPanel = MainWindowPanel(self)
-		#self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
-		#self.trainingPanel.Hide()
+		self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
+		self.trainingPanel.Hide()
 		self.mainPanel.Show()
 		
 		self.CreateStatusBar()   # would be nice to have Golden Ratio proportions

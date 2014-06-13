@@ -15,18 +15,9 @@ class TrainingPanel(wx.Panel):
 		"""
 		self.parent = parent
 		self.size = size
-		print(parent.mainPanel.language)
-		print(parent.mainPanel.contrast)
+		
 		# We store all information about test samples in the list self.items
-		parent.mainPanel.cursor.execute('''SELECT file, item_1, item_2, answer FROM
-			((SELECT item_1, item_2 FROM minimal_pairs
-				WHERE language = ? AND contrast = ?)
-			JOIN (SELECT file, answer FROM recordings
-				WHERE language = ?)
-			ON item_1 = answer OR item_2 = answer)
-			''', (parent.mainPanel.language, parent.mainPanel.contrast, parent.mainPanel.language))
-		self.items = list(parent.mainPanel.cursor)
-		print(self.items)
+		self.items = []
 		
 		# Information about the current sample
 		self.file = None
@@ -104,7 +95,7 @@ class TrainingPanel(wx.Panel):
 			self.feedback.SetForegroundColour((255,0,0))
 			self.parent.mainPanel.sessionStats[False] += 1
 		print(self.options[choice] == self.answer)
-		print(self.parent.sessionStats)
+		print(self.parent.mainPanel.sessionStats)
 		# Give feedback to user
 		self.feedback.Label = self.answer.title()
 		# Change the buttons
@@ -153,6 +144,22 @@ class TrainingPanel(wx.Panel):
 			self.start.Label = "Start"
 			self.moo.Hide()
 			self.quack.Hide()
-			self.next.Hide()
-			self.feedback.Label = ""
-			#self.feedback.SetForegroundColour((0,0,0))
+			self.Hide()
+			self.file = None
+			self.answer = None
+			self.options = None
+			self.parent.mainPanel.feedback()
+			self.parent.mainPanel.Show()
+	
+	def prepareSession(self):
+		print(self.parent.mainPanel.language)
+		print(self.parent.mainPanel.contrast)
+		self.parent.mainPanel.cursor.execute('''SELECT file, item_1, item_2, answer FROM
+			((SELECT item_1, item_2 FROM minimal_pairs
+				WHERE language = ? AND contrast = ?)
+			JOIN (SELECT file, answer FROM recordings
+				WHERE language = ?)
+			ON item_1 = answer OR item_2 = answer)
+			''', (self.parent.mainPanel.language, self.parent.mainPanel.contrast, self.parent.mainPanel.language))
+		self.items = list(self.parent.mainPanel.cursor)
+		print(self.items)

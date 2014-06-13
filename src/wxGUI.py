@@ -68,7 +68,7 @@ class MainWindowPanel(wx.Panel):
 		self.grid.Add(self.chooseContrast, pos=(3,1))
 		self.grid.Add(self.train, pos=(3,2))
 		
-		self.mainSizer.Add(self.grid, 20, wx.ALL, 20)
+		self.mainSizer.Add(self.grid, 20, wx.EXPAND | wx.ALL, 20)
 		self.SetSizerAndFit(self.mainSizer)
 		
 	
@@ -155,6 +155,7 @@ class MainWindow(wx.Frame):
 		self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
 		self.trainingPanel.Hide()
 		self.mainPanel.Show()
+		self.SetBackgroundColour("#ededed") # to cover up the fact that the panel seems not to be filling the frame...
 		
 		self.CreateStatusBar()   # would be nice to have Golden Ratio proportions
 		
@@ -186,6 +187,10 @@ class MainWindow(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnClose, menuExit)
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
 	
+		self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+
+	def OnKeyDown(self, event):
+		print "You pressed a key and the FRAME saw it"
 
 	def OnFile(self, event):
 		'''Opens FileWindow.'''

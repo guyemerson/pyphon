@@ -47,9 +47,9 @@ class TrainingPanel(wx.Panel):
 		self.grid.Add(self.quack, pos=(1,3), span=(1,2))
 		self.grid.Add(self.feedback, pos=(2,2), span=(1,2))
 		self.grid.Add(self.next, pos=(3,2), span=(1,2)) 
-		self.grid.Add(self.start, pos=(4,3))
+		self.grid.Add(self.start, pos=(5,5), span=(1,2))
 
-		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
+		self.mainSizer.Add(self.grid, 0, wx.ALL | wx.ALIGN_CENTRE, 20)
 		self.SetSizerAndFit(self.mainSizer)
 		
 		self.Show() # is this line necessary?
@@ -71,14 +71,15 @@ class TrainingPanel(wx.Panel):
 	# This is where the action happens
 	
 	def OnKeyDown(self, event):
-		print ("you pressed a key")
+		print ("you pressed a key and the TRAINING PANEL saw it")
 		key = event.GetKeyCode()
 		keyCharacter = chr(key)
 		if keyCharacter == "1":
-			self.OnChoice(0)
+			self.OnChoice2(0)
 		elif keyCharacter == "2":
-			self.OnChoice(1)
-		self.pendingAnswer = False
+			self.OnChoice2(1)
+		elif key == wx.WXK_SPACE:
+			self.OnNext()
 	# A space event for Next would also be nice
 
 	def OnChoice(self, choice):
@@ -109,6 +110,7 @@ class TrainingPanel(wx.Panel):
 		Button press depending on choice (index in self.options)
 		"""
 		if self.pendingAnswer == False: return # stops people from being able to answer the same question multiple times with button presses
+		self.pendingAnswer = False
 		print(self.options[choice])
 		# Compare user's choice with the correct answer
 		if self.options[choice] == self.answer:
@@ -127,6 +129,7 @@ class TrainingPanel(wx.Panel):
 		self.moo.Disable()
 		self.quack.Disable()
 		self.next.Show()
+		self.next.SetFocus()
 	
 	def OnMoo(self, event):
 		self.OnChoice2(0)
@@ -137,6 +140,7 @@ class TrainingPanel(wx.Panel):
 		
 	def OnNext(self, event):
 		# allow the user to answer
+		if self.pendingAnswer == True: return
 		self.pendingAnswer = True
 		
 		# reset the background colour of the buttons
@@ -173,16 +177,19 @@ class TrainingPanel(wx.Panel):
 			self.moo.Show()
 			self.quack.Show()
 			self.OnNext(event)
+			self.pendingAnswer = True
 		elif self.start.Label == "Stop":
 			self.start.Label = "Start"
 			self.moo.Hide()
 			self.quack.Hide()
+			self.next.Hide()
 			self.Hide()
 			self.file = None
 			self.answer = None
 			self.options = None
 			self.parent.mainPanel.feedback()
 			self.parent.mainPanel.Show()
+			self.pendingAnswer = False
 	
 	def prepareSession(self):
 		print(self.parent.mainPanel.language)

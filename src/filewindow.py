@@ -118,8 +118,8 @@ class DatabasePanel(wx.Panel):
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
 
-		self.selectAll = wx.Button(self, label=u"Select all")
-		self.delete = wx.Button(self, label=u"Delete selected")
+		#self.selectAll = wx.Button(self, label=u"Select all")
+		#self.delete = wx.Button(self, label=u"Delete selected")
 		self.save = wx.Button(self, label=u"Save changes")
 		self.add = wx.Button(self, label=u"Add...")  # Generic label to be changed by child classes
 		self.search = wx.TextCtrl(self, value=u"<search>", size=(250, -1), style=wx.TE_PROCESS_ENTER)
@@ -128,9 +128,10 @@ class DatabasePanel(wx.Panel):
 		for i, text in enumerate(self.headings):
 			self.itemList.InsertColumn(col=i, heading=text)
 		self.itemList.SetColumnWidth(0, 150)
+		self.itemList.SetColumnWidth(2, 100)
 		
-		self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
-		self.Bind(wx.EVT_BUTTON, self.OnDelete, self.delete)
+		#self.Bind(wx.EVT_BUTTON, self.OnSelectAll, self.selectAll)
+		#self.Bind(wx.EVT_BUTTON, self.OnDelete, self.delete)
 		self.Bind(wx.EVT_BUTTON, self.OnSave, self.save)
 		self.Bind(wx.EVT_BUTTON, self.OnAdd, self.add)
 		self.Bind(wx.EVT_TEXT_ENTER, self.OnSearch, self.search)
@@ -138,11 +139,11 @@ class DatabasePanel(wx.Panel):
 		self.Bind(wx.EVT_LIST_ITEM_ACTIVATED, self.OnPlay, self.itemList)
 		
 		self.grid.Add(self.search, pos=(1,1), span=(1,3))
-		self.grid.Add(self.add, pos=(1,4))
 		self.grid.Add(self.itemList,  pos=(3,1), span=(3,3))
-		self.grid.Add(self.selectAll, pos=(6,1))
-		self.grid.Add(self.delete, pos=(7,1))
-		self.grid.Add(self.save, pos=(6,4))
+		#self.grid.Add(self.selectAll, pos=(6,1))
+		#self.grid.Add(self.delete, pos=(7,1))
+		self.grid.Add(self.add, pos=(6,1))
+		self.grid.Add(self.save, pos=(6,2))
 		
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.SetSizerAndFit(self.mainSizer)
@@ -202,15 +203,11 @@ class DatabasePanel(wx.Panel):
 			if self.itemList.IsSelected(row):
 				self.itemList.SetStringItem(row, choice, text)
 	
-	def OnSelectAll(self, event):
-		""" This is still a placeholder """
-		print(u"You have pressed the 'Select All' button")
-	
 	# The following functions must be overwritten by subclasses
 	def OnAdd(self, event):	raise NotImplementedError
 	def OnSave(self, event): raise NotImplementedError
 	def OnSearch(self, event): raise NotImplementedError
-	def OnDelete(self, event): raise NotImplementedError
+	#def OnDelete(self, event): raise NotImplementedError
 	def OnPlay(self, event): raise NotImplementedError
 
 

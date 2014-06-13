@@ -19,9 +19,9 @@ class MetadataPanel(wx.Panel):
 		self.speakersHeading = wx.StaticText(self, label=u"Speakers")
 		self.names = [u"language", u"contrast", u"speaker"]
 		
-		self.languages = wx.ListBox(self, size=(130,200))
-		self.contrasts = wx.ListBox(self, size=(130,200))
-		self.speakers =  wx.ListBox(self, size=(130,200))
+		self.languages = wx.ListBox(self, size=(150,200))
+		self.contrasts = wx.ListBox(self, size=(150,200))
+		self.speakers =  wx.ListBox(self, size=(150,200))
 		self.boxes = [self.languages, self.contrasts, self.speakers]
 		
 		self.addLanguage = wx.Button(self, label=u"Add language")
@@ -48,17 +48,17 @@ class MetadataPanel(wx.Panel):
 		
 		# grid and mainSizer
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
-		self.grid.Add(self.languagesHeading, pos=(1,1))
-		self.grid.Add(self.contrastsHeading, pos=(1,2))
-		self.grid.Add(self.speakersHeading,  pos=(1,3))
-		self.grid.Add(self.addLanguage, pos=(2,1))
-		self.grid.Add(self.addContrast, pos=(2,2))
-		self.grid.Add(self.addSpeaker,  pos=(2,3))
-		self.grid.Add(self.languages, pos=(3,1))
-		self.grid.Add(self.contrasts, pos=(3,2))
-		self.grid.Add(self.speakers,  pos=(3,3))
-		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
+		self.grid = wx.GridBagSizer(hgap=20, vgap=5)
+		self.grid.Add(self.languagesHeading, pos=(1,0))
+		self.grid.Add(self.contrastsHeading, pos=(1,1))
+		self.grid.Add(self.speakersHeading,  pos=(1,2))
+		self.grid.Add(self.addLanguage, pos=(3,0))
+		self.grid.Add(self.addContrast, pos=(3,1))
+		self.grid.Add(self.addSpeaker,  pos=(3,2))
+		self.grid.Add(self.languages, pos=(2,0))
+		self.grid.Add(self.contrasts, pos=(2,1))
+		self.grid.Add(self.speakers,  pos=(2,2))
+		self.mainSizer.Add(self.grid, 0, wx.ALL | wx.ALIGN_CENTRE, 0)
 		self.SetSizerAndFit(self.mainSizer)
 		
 		# POPUP MENUS

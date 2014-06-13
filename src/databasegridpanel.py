@@ -27,7 +27,7 @@ class DatabaseGridPanel(wx.Panel):
 		self.grid = wx.GridBagSizer(hgap=5, vgap=5)
 		
 		self.sheet = SimpleGrid(self)
-		self.browse = wx.Button(self, label="Browse...")
+		self.browse = wx.Button(self, label="Add files")
 		
 		self.grid.Add(self.sheet, pos=(0,0),span=(10,5))
 		self.grid.Add(self.browse, pos=(2,6))
@@ -70,14 +70,14 @@ class MinimalPairsGridPanel(DatabaseGridPanel):
 
 class TestFrame(wx.Frame):
 	def __init__(self, parent):
-		wx.Frame.__init__(self, parent, -1, "A Grid", size=(200,200))
+		wx.Frame.__init__(self, parent, -1, "A Grid", size=(600,250))
 		
 		#grid = SimpleGrid(self)
 		
 		self.panel = AddDataGridPanel(self)
 		
 		
-#app = wx.App(False)
-#frame = TestFrame(None)
-#frame.Show(True)
-#app.MainLoop()
+app = wx.App(False)
+frame = TestFrame(None)
+frame.Show(True)
+app.MainLoop()

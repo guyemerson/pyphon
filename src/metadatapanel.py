@@ -76,6 +76,7 @@ class MetadataPanel(wx.Panel):
 	# Show popup menus
 	def OnShowPopup(self, i):
 		def func(event):
+			assert self.boxes[i].GetSelections()
 			pos = self.ScreenToClient(event.GetPosition())
 			self.PopupMenu(self.menus[i], pos)
 		return func

@@ -29,7 +29,7 @@ class TrainingPanel(wx.Panel):
 		
 		self.SetBackgroundColour('#ededed')
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-		self.grid = wx.GridBagSizer(hgap=20, vgap=10)
+		self.grid = wx.GridBagSizer(hgap=20, vgap=5)
 		
 		self.feedback = wx.StaticText(self, label="")
 		
@@ -47,7 +47,7 @@ class TrainingPanel(wx.Panel):
 		self.grid.Add(self.quack, pos=(1,3), span=(1,2))
 		self.grid.Add(self.feedback, pos=(2,2), span=(1,2))
 		self.grid.Add(self.next, pos=(3,2), span=(1,2)) 
-		self.grid.Add(self.start, pos=(5,5), span=(1,2))
+		self.grid.Add(self.start, pos=(4,4), span=(1,2))
 
 		self.mainSizer.Add(self.grid, 0, wx.ALL | wx.ALIGN_CENTRE, 20)
 		self.SetSizerAndFit(self.mainSizer)

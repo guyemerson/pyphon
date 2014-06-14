@@ -119,7 +119,7 @@ class DatabasePanel(wx.Panel):
 		#self.delete = wx.Button(self, label=u"Delete selected")
 		self.save = wx.Button(self, label=u"Save changes")
 		self.add = wx.Button(self, label=u"Add...")  # Generic label to be changed by child classes
-		self.search = wx.SearchCtrl(self, value=u"<search>", size=(250, -1), style=wx.TE_PROCESS_ENTER)
+		self.search = wx.SearchCtrl(self, value=u"", size=(250, -1), style=wx.TE_PROCESS_ENTER)
 		
 		self.itemList = EditableListCtrl(self, id=wx.ID_ANY, pos=(300,60), size=(450,400), style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 		for i, text in enumerate(self.headings):

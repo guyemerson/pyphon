@@ -217,14 +217,16 @@ class MainWindow(wx.Frame):
 	
 	def OnAbout(self, event):
 		dlg = wx.MessageDialog(self,
-u"""PyPhon is an open-source software for learning new sounds contrasts in a foreign language.
+u"""PyPhon is an open-source application for learning new sound contrasts in a foreign language.
 
-For a simple introduction to the method used, see http://languagelog.ldc.upenn.edu/nll/?p=328 
+For a simple introduction to the method used (High Variability Phonetic Training), see:
+http://languagelog.ldc.upenn.edu/nll/?p=328 
 
-This program is published under the GNU General Public Lisence.
+This program is published under the GNU General Public License.
 
-The authors are Guy Emerson and Stanisław Pstrokoński.
-email: getemerson+pyphon@gmail.com; bigstas_lives@hotmail.com""",  "About PyPhon 0.0", wx.OK | wx.ICON_INFORMATION)
+The authors are:
+Guy Emerson (getemerson+pyphon@gmail.com)
+Stanisław Pstrokoński (bigstas_lives@hotmail.com)""",  "About PyPhon 0.0", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
 		dlg.Destroy()
 	

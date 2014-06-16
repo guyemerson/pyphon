@@ -46,6 +46,12 @@ class StatsDialog(wx.Dialog):
 		self.todayIncorrect = wx.StaticText(self.panel, label=str(self.todayFalse))
 		self.todayTotal     = wx.StaticText(self.panel, label=str(self.todayTrue + self.todayFalse))
 		
+		self.message = wx.StaticText(self.panel, label=
+"""Coming soon:
+- long-term statistics
+- detailed performance breakdown
+- graphs and visualisations""")
+		
 		self.grid.Add(self.today,     pos=(2,0))
 		self.grid.Add(self.correct,   pos=(1,1))
 		self.grid.Add(self.incorrect, pos=(1,2))
@@ -53,8 +59,9 @@ class StatsDialog(wx.Dialog):
 		self.grid.Add(self.todayCorrect,   pos=(2,1))
 		self.grid.Add(self.todayIncorrect, pos=(2,2))
 		self.grid.Add(self.todayTotal,     pos =(2,3))
+		self.grid.Add(self.message, pos=(4,1), span=(1,3))
 		
-		self.grid.Add(self.ok, pos=(5,2))
+		self.grid.Add(self.ok, pos=(6,2))
 		
 		self.mainSizer.Add(self.grid, 0, wx.ALL, 0)
 		self.panel.SetSizerAndFit(self.mainSizer)

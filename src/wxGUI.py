@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# -*- coding: utf-8 -*-
 
 from __future__ import division
 import wx, datetime
@@ -162,11 +163,11 @@ class MainWindow(wx.Frame):
 		filemenu = wx.Menu()
 		helpmenu = wx.Menu()
 		
-		menuDB = filemenu.Append(wx.ID_ANY, "Edit &Database", "view and edit the database")
+		menuDB = filemenu.Append(wx.ID_ANY, "Edit &Database", "View and edit the database")
 		filemenu.AppendSeparator()
-		menuOptions = filemenu.Append(wx.ID_ANY, "&Settings", "change settings")
+		menuOptions = filemenu.Append(wx.ID_ANY, "&Settings", "Change settings")
 		menuStats = filemenu.Append(wx.ID_ANY, "View my &stats", "Statistics of past performance")
-		menuHelp = helpmenu.Append(wx.ID_ANY, "&Help topics", "You could always call Stas for help")
+		#menuHelp = helpmenu.Append(wx.ID_ANY, "&Help topics", "Help for this program")
 		menuAbout = helpmenu.Append(wx.ID_ABOUT, "&About", " Information about this program") 
 		menuExit = filemenu.Append(wx.ID_EXIT, "E&xit", " Terminate the program")
 		# The StausBar messages seem to be persistent. How to get rid of them after rollover?
@@ -182,7 +183,7 @@ class MainWindow(wx.Frame):
 		self.Bind(wx.EVT_MENU, self.OnOptions, menuOptions)
 		self.Bind(wx.EVT_MENU, self.OnFile, menuDB)
 		self.Bind(wx.EVT_MENU, self.OnStats, menuStats)
-		self.Bind(wx.EVT_MENU, self.OnHelp, menuHelp)
+		#self.Bind(wx.EVT_MENU, self.OnHelp, menuHelp)
 		self.Bind(wx.EVT_MENU, self.OnAbout, menuAbout)
 		self.Bind(wx.EVT_MENU, self.OnClose, menuExit)
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
@@ -215,7 +216,15 @@ class MainWindow(wx.Frame):
 		dlg.Destroy()
 	
 	def OnAbout(self, event):
-		dlg = wx.MessageDialog(self, "What's this? Another message?\nWow Stas, you are so full of surprises!", "More fun messages", wx.OK | wx.ICON_INFORMATION)
+		dlg = wx.MessageDialog(self,
+u"""PyPhon is an open-source software for learning new sounds contrasts in a foreign language.
+
+For a simple introduction to the method used, see http://languagelog.ldc.upenn.edu/nll/?p=328 
+
+This program is published under the GNU General Public Lisence.
+
+The authors are Guy Emerson and Stanisław Pstrokoński.
+email: getemerson+pyphon@gmail.com; bigstas_lives@hotmail.com""",  "About PyPhon 0.0", wx.OK | wx.ICON_INFORMATION)
 		dlg.ShowModal()
 		dlg.Destroy()
 	

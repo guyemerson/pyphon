@@ -93,9 +93,9 @@ class TrainingPanel(wx.Panel):
 		print(self.options[choice])
 		# Compare user's choice with the correct answer
 		if self.options[choice] == self.answer:
-			self.parent.mainPanel.sessionStats[True] += 1
+			self.parent.sessionStats[True] += 1
 		else:
-			self.parent.mainPanel.sessionStats[False] += 1
+			self.parent.sessionStats[False] += 1
 		# Colour buttons backgrounds for feedback
 		for button in [self.moo, self.quack]:
 			if button.Label == self.answer:
@@ -103,7 +103,7 @@ class TrainingPanel(wx.Panel):
 			else:
 				button.SetBackgroundColour((255,0,0))
 		print(self.options[choice] == self.answer)
-		print(self.parent.mainPanel.sessionStats)
+		print(self.parent.sessionStats)
 		# Change the buttons
 		self.moo.Disable()
 		self.quack.Disable()
@@ -150,15 +150,20 @@ class TrainingPanel(wx.Panel):
 	
 		
 	def OnStop(self, event):
-		self.moo.Hide()
-		self.quack.Hide()
-		self.Hide()
+		self.moo.Disable()
+		self.quack.Disable()
+		self.moo.Label = "..."
+		self.quack.Label = "..."
+		self.next.Label = "Play"
+		self.moo.SetBackgroundColour(wx.NullColour)
+		self.quack.SetBackgroundColour(wx.NullColour)
+		
 		self.file = None
 		self.answer = None
 		self.options = None
-		self.parent.mainPanel.feedback()
-		self.parent.mainPanel.Show()
 		self.pendingAnswer = False
+		self.parent.switchMain()
+		
 	
 	def prepareSession(self):
 		print(self.parent.language)

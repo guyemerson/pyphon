@@ -147,18 +147,28 @@ class MainWindow(wx.Frame):
 
 		# PANEL AND MENUS
 		
-		#self.blankPanel = wx.Panel(self)
 		self.mainPanel = MainWindowPanel(self)
+		self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
+		#self.trainingPanel.Hide()
 		self.SetBackgroundColour("#ededed") # to cover up the fact that the panel seems not to be filling the frame...
 		
-		self.CreateStatusBar()   # would be nice to have Golden Ratio proportions
+		self.sizer = wx.BoxSizer(wx.HORIZONTAL)
+		self.sizer.Add(self.mainPanel, 1, wx.EXPAND)
+		self.sizer.Add(self.trainingPanel, 1, wx.EXPAND)
+		self.SetSizer(self.sizer)
+		self.sizer.Hide(self.trainingPanel)
+		self.sizer.Layout()
+		self.sizer.Show(self.mainPanel)
+		self.sizer.Layout()
+		
+		self.CreateStatusBar()
 		
 		filemenu = wx.Menu()
 		helpmenu = wx.Menu()
 		
 		menuDB = filemenu.Append(wx.ID_ANY, "Edit &Database", "View and edit the database")
 		filemenu.AppendSeparator()
-		menuOptions = filemenu.Append(wx.ID_ANY, "&Settings", "Change settings")
+		#menuOptions = filemenu.Append(wx.ID_ANY, "&Settings", "Change settings")
 		menuStats = filemenu.Append(wx.ID_ANY, "View my &stats", "Statistics of past performance")
 		#menuHelp = helpmenu.Append(wx.ID_ANY, "&Help topics", "Help for this program")
 		menuAbout = helpmenu.Append(wx.ID_ABOUT, "&About", " Information about this program") 
@@ -173,7 +183,7 @@ class MainWindow(wx.Frame):
 		menuBar.Append(helpmenu, "&Help")
 		self.SetMenuBar(menuBar)
 		
-		self.Bind(wx.EVT_MENU, self.OnOptions, menuOptions)
+		#self.Bind(wx.EVT_MENU, self.OnOptions, menuOptions)
 		self.Bind(wx.EVT_MENU, self.OnFile, menuDB)
 		self.Bind(wx.EVT_MENU, self.OnStats, menuStats)
 		#self.Bind(wx.EVT_MENU, self.OnHelp, menuHelp)
@@ -183,16 +193,22 @@ class MainWindow(wx.Frame):
 	
 		self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
 	
+		# WITH SPECIAL THANKS TO NATHAN OSMAN. WE LOVE YOU
 	def switchTraining(self):
-		self.mainPanel.Destroy()
+		self.sizer.Hide(self.mainPanel)
+		self.sizer.Layout()
+		self.sizer.Show(self.trainingPanel)
+		self.sizer.Layout()
 		self.initStats = copy(self.sessionStats)
-		self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
 		self.trainingPanel.prepareSession()
 		
 	def switchMain(self):
-		self.trainingPanel.Destroy()
-		self.mainPanel = MainWindowPanel(self, size=(400,int(400*GOLDEN)))
+		self.sizer.Hide(self.trainingPanel)
+		self.sizer.Layout()
+		self.sizer.Show(self.mainPanel)
+		self.sizer.Layout()
 		self.mainPanel.feedback()
+
 
 	def OnKeyDown(self, event):
 		print "You pressed a key and the FRAME saw it"

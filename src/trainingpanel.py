@@ -29,33 +29,34 @@ class TrainingPanel(wx.Panel):
 		
 		self.SetBackgroundColour('#ededed')
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
+		self.subSizer  = wx.BoxSizer(wx.HORIZONTAL)
 		self.grid = wx.GridBagSizer(hgap=20, vgap=5)
 		
-		self.feedback = wx.StaticText(self, label="")
-		
 		# moo is the left button, quack is the right button
-		self.moo = wx.Button(self, label="")
-		self.quack = wx.Button(self, label="")
-		self.next = wx.Button(self, label="Next")
-		self.start = wx.Button(self, label="Start")
+		self.moo = wx.Button(self, label="...")
+		self.quack = wx.Button(self, label="...")
+		self.next = wx.Button(self, label="Play")
+		self.stop = wx.Button(self, label="Stop", style=wx.BU_EXACTFIT)
 		self.Bind(wx.EVT_BUTTON, self.OnMoo, self.moo)
 		self.Bind(wx.EVT_BUTTON, self.OnQuack, self.quack)
 		self.Bind(wx.EVT_BUTTON, self.OnNext, self.next)
-		self.Bind(wx.EVT_BUTTON, self.OnStart, self.start)
+		self.Bind(wx.EVT_BUTTON, self.OnStop, self.stop)
 
-		self.grid.Add(self.moo, pos=(1,1), span=(1,2))
-		self.grid.Add(self.quack, pos=(1,3), span=(1,2))
-		self.grid.Add(self.feedback, pos=(2,2), span=(1,2))
-		self.grid.Add(self.next, pos=(3,2), span=(1,2)) 
-		self.grid.Add(self.start, pos=(4,4), span=(1,2))
+		self.grid.Add(self.moo, pos=(0,0), span=(1,2))
+		self.grid.Add(self.quack, pos=(0,2), span=(1,2))
+		self.grid.Add(self.next, pos=(2,1), span=(1,2)) 
+		#self.grid.Add(self.stop, pos=(6,4), span=(1,2))
 
-		self.mainSizer.Add(self.grid, 0, wx.ALL | wx.ALIGN_CENTRE, 20)
+		self.subSizer.Add(self.stop, 1, wx.RIGHT | wx.BOTTOM | wx.ALIGN_BOTTOM, 10)
+		self.mainSizer.Add(self.grid, 1, wx.TOP | wx.ALIGN_CENTRE, 50)
+		self.mainSizer.Add(self.subSizer, 1, wx.ALIGN_RIGHT, 0)
 		self.SetSizerAndFit(self.mainSizer)
+		#self.SetSizerAndFit(self.grid)
 		
-		self.Show() # is this line necessary?
-		self.moo.Hide()
-		self.quack.Hide()
-		self.next.Hide()
+		self.CentreOnParent()
+		
+		self.moo.Disable()
+		self.quack.Disable()
 		
 		# Keyboard shortcuts
 		self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
@@ -75,37 +76,15 @@ class TrainingPanel(wx.Panel):
 		key = event.GetKeyCode()
 		keyCharacter = chr(key)
 		if keyCharacter == "1":
-			self.OnChoice2(0)
+			self.OnChoice(0)
 		elif keyCharacter == "2":
-			self.OnChoice2(1)
+			self.OnChoice(1)
 		elif key == wx.WXK_SPACE:
 			self.OnNext()
 	# A space event for Next would also be nice
 
-	def OnChoice(self, choice):
-		"""
-		DISUSED in favour of OnChoice2.
-		Button press depending on choice (index in self.options)
-		"""
-		if self.pendingAnswer == False: return # stops people from being able to answer the same question multiple times with button presses
-		print(self.options[choice])
-		# Compare user's choice with the correct answer
-		if self.options[choice] == self.answer:
-			self.feedback.SetForegroundColour((0,255,0))
-			self.parent.mainPanel.sessionStats[True] += 1
-		else:
-			self.feedback.SetForegroundColour((255,0,0))
-			self.parent.mainPanel.sessionStats[False] += 1
-		print(self.options[choice] == self.answer)
-		print(self.parent.mainPanel.sessionStats)
-		# Give feedback to user
-		self.feedback.Label = self.answer.title()
-		# Change the buttons
-		self.moo.Hide()
-		self.quack.Hide()
-		self.next.Show()
 	
-	def OnChoice2(self, choice):
+	def OnChoice(self, choice):
 		"""
 		Button press depending on choice (index in self.options)
 		"""
@@ -114,9 +93,9 @@ class TrainingPanel(wx.Panel):
 		print(self.options[choice])
 		# Compare user's choice with the correct answer
 		if self.options[choice] == self.answer:
-			self.parent.mainPanel.sessionStats[True] += 1
+			self.parent.sessionStats[True] += 1
 		else:
-			self.parent.mainPanel.sessionStats[False] += 1
+			self.parent.sessionStats[False] += 1
 		# Colour buttons backgrounds for feedback
 		for button in [self.moo, self.quack]:
 			if button.Label == self.answer:
@@ -124,82 +103,77 @@ class TrainingPanel(wx.Panel):
 			else:
 				button.SetBackgroundColour((255,0,0))
 		print(self.options[choice] == self.answer)
-		print(self.parent.mainPanel.sessionStats)
+		print(self.parent.sessionStats)
 		# Change the buttons
 		self.moo.Disable()
 		self.quack.Disable()
-		self.next.Show()
+		self.next.Label = "Play next"
 		self.next.SetFocus()
 	
 	def OnMoo(self, event):
-		self.OnChoice2(0)
+		self.OnChoice(0)
 	
 	def OnQuack(self, event):
-		self.OnChoice2(1)
+		self.OnChoice(1)
 		
 		
 	def OnNext(self, event):
 		# allow the user to answer
-		if self.pendingAnswer == True: return
-		self.pendingAnswer = True
-		
-		# reset the background colour of the buttons
-		self.moo.SetBackgroundColour(wx.NullColour)
-		self.quack.SetBackgroundColour(wx.NullColour)
-		
-		# Take a random sample, and store it
-		filename, item_1, item_2, answer = random.choice(self.items)
-		self.file = pyphon.filepath(filename)
-		self.options = [item_1, item_2]
-		self.answer = answer
-		print(self.file)
-		print(self.options)
-		print(self.answer)
-		assert len(self.options) == 2
-		
-		# Relabel the buttons
-		self.moo.Label = self.options[0]
-		self.quack.Label = self.options[1]
-		#self.moo.Show()
-		#self.quack.Show()
-		self.moo.Enable()
-		self.quack.Enable()
-		self.feedback.Label = ""
-		self.next.Hide()
+		if self.pendingAnswer == False:
+			self.pendingAnswer = True
+			
+			# reset the background colour of the buttons
+			self.moo.SetBackgroundColour(wx.NullColour)
+			self.quack.SetBackgroundColour(wx.NullColour)
+			
+			# Take a random sample, and store it
+			filename, item_1, item_2, answer = random.choice(self.items)
+			self.file = pyphon.filepath(filename)
+			self.options = [item_1, item_2]
+			self.answer = answer
+			print(self.file)
+			print(self.options)
+			print(self.answer)
+			assert len(self.options) == 2
+			
+			# Relabel the buttons
+			self.moo.Label = self.options[0]
+			self.quack.Label = self.options[1]
+			#self.moo.Show()
+			#self.quack.Show()
+			self.moo.Enable()
+			self.quack.Enable()
+			self.next.Label = "Play again"
 		
 		# Play the file
 		wx.Sound(self.file).Play()
 	
 		
-	def OnStart(self, event):
-		if self.start.Label == "Start":
-			self.start.Label = "Stop"
-			self.moo.Show()
-			self.quack.Show()
-			self.OnNext(event)
-			self.pendingAnswer = True
-		elif self.start.Label == "Stop":
-			self.start.Label = "Start"
-			self.moo.Hide()
-			self.quack.Hide()
-			self.next.Hide()
-			self.Hide()
-			self.file = None
-			self.answer = None
-			self.options = None
-			self.parent.mainPanel.feedback()
-			self.parent.mainPanel.Show()
-			self.pendingAnswer = False
+	def OnStop(self, event):
+		self.moo.Disable()
+		self.quack.Disable()
+		self.moo.Label = "..."
+		self.quack.Label = "..."
+		self.next.Label = "Play"
+		self.moo.SetBackgroundColour(wx.NullColour)
+		self.quack.SetBackgroundColour(wx.NullColour)
+		
+		self.file = None
+		self.answer = None
+		self.options = None
+		self.pendingAnswer = False
+		self.parent.switchMain()
+		
 	
 	def prepareSession(self):
-		print(self.parent.mainPanel.language)
-		print(self.parent.mainPanel.contrast)
-		self.parent.mainPanel.cursor.execute('''SELECT file, item_1, item_2, answer FROM
+		print(self.parent.language)
+		print(self.parent.contrast)
+		self.parent.cursor.execute('''SELECT file, item_1, item_2, answer FROM
 			((SELECT item_1, item_2 FROM minimal_pairs
 				WHERE language = ? AND contrast = ?)
 			JOIN (SELECT file, answer FROM recordings
 				WHERE language = ?)
 			ON item_1 = answer OR item_2 = answer)
-			''', (self.parent.mainPanel.language, self.parent.mainPanel.contrast, self.parent.mainPanel.language))
-		self.items = list(self.parent.mainPanel.cursor)
+			''', (self.parent.language, self.parent.contrast, self.parent.language))
+		self.items = list(self.parent.cursor)
 		print(self.items)

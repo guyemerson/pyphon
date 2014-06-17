@@ -35,8 +35,8 @@ class StatsDialog(wx.Dialog):
 		self.ok = wx.Button(self.panel, label="OK")
 		self.Bind(wx.EVT_BUTTON, self.OnOK, self.ok)
 		
-		self.todayTrue  = frame.mainPanel.sessionStats[True]
-		self.todayFalse = frame.mainPanel.sessionStats[False]
+		self.todayTrue  = frame.sessionStats[True]
+		self.todayFalse = frame.sessionStats[False]
 		
 		self.today          = wx.StaticText(self.panel, label="Today:")
 		self.correct        = wx.StaticText(self.panel, label="Correct")

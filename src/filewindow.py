@@ -68,6 +68,7 @@ class AddPairsDialog(wx.Dialog):
 		if self.language != event.GetString():
 			if self.defaultLangText in self.chooseLanguage.GetItems():
 				self.chooseLanguage.SetItems(self.allContrasts.keys())
+				self.chooseLanguage.SetStringSelection(event.GetString())
 	
 		self.language = unicode(event.GetString())
 		print(u"you chose {}".format(self.language))
@@ -82,6 +83,7 @@ class AddPairsDialog(wx.Dialog):
 	def OnContrast(self, event):
 		if event.GetString() != self.defaultContrastText and self.defaultContrastText in self.chooseContrast.GetItems():
 			self.chooseContrast.SetItems(self.allContrasts[self.language])
+			self.chooseContrast.SetStringSelection(event.GetString())
 		self.contrast = unicode(event.GetString())
 		print(u"you chose {}".format(self.contrast))
 		
@@ -247,6 +249,13 @@ class DatabasePanel(wx.Panel):
 					i += 1
 					break
 	
+	def update(self):
+		# hack
+		self.everything = []
+		self.cursor.execute(self.query)
+		for recording in self.cursor:
+			self.everything.append(recording)	
+	
 	# The following functions must be overwritten by subclasses
 	def OnAdd(self, event):	raise NotImplementedError
 	def OnSave(self, event): raise NotImplementedError
@@ -307,11 +316,7 @@ class RecordingsPanel(DatabasePanel):
 			filename, answer, language, speaker = recording
 			self.cursor.execute(u"INSERT INTO recordings VALUES (?,?,?,?)", (filename, speaker, language, answer))
 			self.original.append(recording)
-		# 'hack'
-		self.everything = []
-		self.cursor.execute(self.query)
-		for recording in self.cursor:
-			self.everything.append(recording)	
+		self.update()	
 		# We could catch sqlite3.IntegrityError to inform the user when something goes wrong
 		dlg = wx.MessageDialog(self, u"Changes successfully saved", u"Confirmation", wx.OK)
 		dlg.ShowModal()
@@ -345,10 +350,7 @@ class MinimalPairsPanel(DatabasePanel):
 				self.cursor.execute(u"UPDATE minimal_pairs SET {0} = ?, {1} = ?, {2} = ?, {3} = ? WHERE {0} = ? AND {1} = ? AND {2} = ? AND {3} = ?".format(*self.fields), new + old)
 				self.original[i] = new
 		# 'hack'
-		self.everything = []
-		self.cursor.execute(self.query)
-		for recording in self.cursor:
-			self.everything.append(recording)
+		self.update()
 		# dialogue box
 		dlg = wx.MessageDialog(self, u"Changes successfully saved", u"Confirmation", wx.OK)
 		dlg.ShowModal()
@@ -372,14 +374,18 @@ class FileWindow(wx.Frame):
 		self.cursor = parent.cursor
 		self.metaData = parent.metaData
 		notebook = FileNotebook(self)
-		notebook.AddPage(metadatapanel.MetadataPanel(notebook), u"Language info")
-		notebook.AddPage(RecordingsPanel(notebook), u"Recordings")
-		notebook.AddPage(MinimalPairsPanel(notebook), u"Minimal pairs")
+		self.metaPanel = metadatapanel.MetadataPanel(notebook)
+		self.recordingsPanel = RecordingsPanel(notebook)
+		self.pairsPanel = MinimalPairsPanel(notebook)
+		notebook.AddPage(self.metaPanel, u"Language info")
+		notebook.AddPage(self.recordingsPanel, u"Recordings")
+		notebook.AddPage(self.pairsPanel, u"Minimal pairs")
 		#notebook.AddPage(databasegridpanel.AddDataGridPanel(notebook), "Recordings")
 		#notebook.AddPage(databasegridpanel.MinimalPairsGridPanel(notebook), "Minimal pairs")
 	
 class FileNotebook(wx.Notebook):
 	def __init__(self, parent):
 		wx.Notebook.__init__(self, parent)
+		self.parent = parent
 		self.cursor = parent.cursor
 		self.metaData = parent.metaData

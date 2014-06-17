@@ -21,7 +21,7 @@ class MainWindowPanel(wx.Panel):
 	- a BoxSizer as a "main sizer", in which the GridBagSizer fits
 	'''
 	def __init__(self, parent):
-		wx.Panel.__init__(self, parent, size=(400,int(400*GOLDEN)))
+		wx.Panel.__init__(self, parent, size=(420,int(420*GOLDEN)))
 		
 		self.parent = parent
 		self.SetBackgroundColour("#ededed")
@@ -82,6 +82,7 @@ class MainWindowPanel(wx.Panel):
 		if self.parent.language != event.GetString():
 			if self.defaultLangText in self.chooseLanguage.GetItems():
 				self.chooseLanguage.SetItems(self.parent.trainLanguages)
+				self.chooseLanguage.SetStringSelection(event.GetString())
 			self.parent.language = event.GetString()
 			self.train.Disable()
 			# Find all contrasts for the language
@@ -99,8 +100,9 @@ class MainWindowPanel(wx.Panel):
 		print (event.GetString())
 		if event.GetString() != self.defaultContrastText and self.defaultContrastText in self.chooseContrast.GetItems():
 			self.chooseContrast.SetItems(self.parent.trainContrasts)
+			self.chooseContrast.SetStringSelection(event.GetString())
+			self.train.Enable()
 		self.parent.contrast = event.GetString()
-		self.train.Enable()
 		
 
 
@@ -119,7 +121,7 @@ class MainWindow(wx.Frame):
 		"""
 		cursor - SQLite3 cursor object
 		"""
-		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,int(400*GOLDEN)))
+		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(420,int(420*GOLDEN)))
 		
 		self.sessionStats = {True: 0, False: 0}
 		
@@ -158,7 +160,7 @@ class MainWindow(wx.Frame):
 		# PANEL AND MENUS
 		
 		self.mainPanel = MainWindowPanel(self)
-		self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
+		self.trainingPanel = trainingpanel.TrainingPanel(self, size=(420,int(420*GOLDEN)))
 		#self.trainingPanel.Hide()
 		self.SetBackgroundColour("#ededed") # to cover up the fact that the panel seems not to be filling the frame...
 		

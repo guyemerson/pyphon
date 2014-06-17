@@ -37,7 +37,8 @@ class MetadataPanel(wx.Panel):
 		self.Bind(wx.EVT_BUTTON, self.OnAddContrast, self.addContrast)
 		self.Bind(wx.EVT_BUTTON, self.OnAddSpeaker,  self.addSpeaker)
 		
-		# Fetch items from database
+		# Fetch data from parent
+		self.parent = parent
 		self.cursor = parent.cursor
 		self.metaData = parent.metaData
 		self.tables = (u"language_set", u"contrast_set", u"speaker_set")
@@ -112,6 +113,8 @@ class MetadataPanel(wx.Panel):
 				else:
 					del self.metaData[i][self.chosenLanguage][index]
 					self.cursor.execute(u"DELETE FROM {} WHERE language = ? AND {} = ?".format(self.tables[i], self.names[i]), (self.chosenLanguage, selection))
+			self.parent.parent.recordingsPanel.update()
+			self.parent.parent.pairsPanel.update()
 			dlg.Destroy()
 		
 		elif action == u"rename":
@@ -135,6 +138,8 @@ class MetadataPanel(wx.Panel):
 				# rewrite box contents
 				theBox.Clear()
 				theBox.InsertItems(newlist,0)
+			self.parent.parent.recordingsPanel.update()
+			self.parent.parent.pairsPanel.update()
 			dlg.Destroy()
 	# END POPUP MENUS
 		

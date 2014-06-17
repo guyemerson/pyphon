@@ -21,34 +21,15 @@ class MainWindowPanel(wx.Panel):
 	- a BoxSizer as a "main sizer", in which the GridBagSizer fits
 	'''
 	def __init__(self, parent):
-		"""
-		cursor - SQLite3 cursor object
-		"""
 		wx.Panel.__init__(self, parent, size=(400,int(400*GOLDEN)))
 		
 		self.parent = parent
 		self.SetBackgroundColour("#ededed")
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
-
-		# DATABASE CODE
-		
-		self.cursor = parent.cursor
-		self.cursor.execute("SELECT DISTINCT language FROM contrast_set")
-		self.trainLanguages = sorted(x[0] for x in self.cursor)  # cursor returns a list of tuples
-		print (self.trainLanguages)
-		
-		self.allContrasts = parent.allContrasts
-		
-		# The following will be updated as options are chosen
-		self.trainContrasts = []
-		self.language = None
-		self.contrast = None
-		
-		self.sessionStats = {True: 0, False: 0}
 		
 		# WIDGET CODE
 		
-		self.chooseLanguage = wx.ComboBox(self, size=(140,-1), choices=self.trainLanguages, style=wx.CB_READONLY)
+		self.chooseLanguage = wx.ComboBox(self, size=(140,-1), choices=self.parent.trainLanguages, style=wx.CB_READONLY)
 		self.chooseContrast = wx.ComboBox(self, size=(95,-1), choices=["-"], style=wx.CB_READONLY)
 		
 		self.train = wx.Button(self, label="Train!")
@@ -75,20 +56,18 @@ class MainWindowPanel(wx.Panel):
 	
 	def OnTrain(self, event):
 		# Check that the current settings are valid
-		assert self.language in self.trainLanguages
-		assert self.contrast in self.trainContrasts
+		assert self.parent.language in self.parent.trainLanguages
+		assert self.parent.contrast in self.parent.trainContrasts
 		
 		# Switch panel
-		self.initStats = copy(self.sessionStats)
-		self.Hide()
-		self.parent.trainingPanel.prepareSession()
-		self.parent.trainingPanel.Show()
+		self.parent.switchTraining()
+		
 		
 	def feedback(self):
 		# Training feedback message
 		try:
-			trainedTrue = self.sessionStats[True]  - self.initStats[True]
-			trainedTotal = trainedTrue + self.sessionStats[False] - self.initStats[False]
+			trainedTrue = self.parent.sessionStats[True]  - self.parent.initStats[True]
+			trainedTotal = trainedTrue + self.parent.sessionStats[False] - self.parent.initStats[False]
 			proportion = trainedTrue / trainedTotal
 			self.sessionFeedback.SetLabel("In your last session you trained a total of {} reps \nand got {:.0%} correct.".format(trainedTotal, proportion))
 		except ZeroDivisionError:
@@ -97,20 +76,20 @@ class MainWindowPanel(wx.Panel):
 	def OnLanguage(self, event):
 		# Save the chosen language
 		print (event.GetString())
-		if self.language != event.GetString():
-			self.language = event.GetString()
+		if self.parent.language != event.GetString():
+			self.parent.language = event.GetString()
 			self.train.Disable()
 			# Find all contrasts for the language
-			self.trainContrasts = self.allContrasts[self.language]
-			print (self.trainContrasts)
+			self.parent.trainContrasts = self.parent.allContrasts[self.parent.language]
+			print (self.parent.trainContrasts)
 			# Update the contrast dropdown menu
-			self.chooseContrast.SetItems(self.trainContrasts)
+			self.chooseContrast.SetItems(self.parent.trainContrasts)
 		self.chooseContrast.Enable()
 
 	def OnContrast(self, event):
 		# Save the chosen contrast
 		print (event.GetString())
-		self.contrast = event.GetString()
+		self.parent.contrast = event.GetString()
 		self.train.Enable()
 		
 
@@ -132,6 +111,9 @@ class MainWindow(wx.Frame):
 		"""
 		wx.Frame.__init__(self, parent, title=title, style=(wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE_BOX | wx.MINIMIZE_BOX | wx.WS_EX_CONTEXTHELP), size=(400,int(400*GOLDEN)))
 		
+		self.sessionStats = {True: 0, False: 0}
+		
+		
 		# DATABASE ACCESS
 		
 		self.cursor = cursor
@@ -150,12 +132,23 @@ class MainWindow(wx.Frame):
 			for language in self.allLanguages:
 				self.metaData[i][language].sort()
 		
+		
+		# DATABASE CODE (formerly in MainWindowPanel)
+		
+		self.cursor.execute("SELECT DISTINCT language FROM contrast_set")
+		self.trainLanguages = sorted(x[0] for x in self.cursor)  # cursor returns a list of tuples
+		print (self.trainLanguages)
+		
+		# The following will be updated as options are chosen
+		self.trainContrasts = []
+		self.language = None
+		self.contrast = None
+
+
 		# PANEL AND MENUS
 		
+		#self.blankPanel = wx.Panel(self)
 		self.mainPanel = MainWindowPanel(self)
-		self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
-		self.trainingPanel.Hide()
-		self.mainPanel.Show()
 		self.SetBackgroundColour("#ededed") # to cover up the fact that the panel seems not to be filling the frame...
 		
 		self.CreateStatusBar()   # would be nice to have Golden Ratio proportions
@@ -189,6 +182,17 @@ class MainWindow(wx.Frame):
 		self.Bind(wx.EVT_CLOSE, self.OnClose)
 	
 		self.Bind(wx.EVT_KEY_DOWN, self.OnKeyDown)
+	
+	def switchTraining(self):
+		self.mainPanel.Destroy()
+		self.initStats = copy(self.sessionStats)
+		self.trainingPanel = trainingpanel.TrainingPanel(self, size=(400,int(400*GOLDEN)))
+		self.trainingPanel.prepareSession()
+		
+	def switchMain(self):
+		self.trainingPanel.Destroy()
+		self.mainPanel = MainWindowPanel(self, size=(400,int(400*GOLDEN)))
+		self.mainPanel.feedback()
 
 	def OnKeyDown(self, event):
 		print "You pressed a key and the FRAME saw it"
@@ -232,15 +236,6 @@ Stanisław Pstrokoński (bigstas_lives@hotmail.com)""",  "About PyPhon 0.0", wx.
 	
 	def OnClose(self, event):
 		# Here do all the things you want to do when closing, like saving data, and asking the user questions using dialog boxes
-		"""
-		with open(userdata, 'a') as f:
-			print (str(self.panel.sessionStats))
-			f.write(str(datetime.date.today()))
-			f.write(str(self.panel.sessionStats))
-			f.write("\n")
-		"""
-		#dlg = wx.MessageDialog(self, "Jesus has changed your life.\nSave changes?", "Important", wx.YES | wx.NO | wx.ICON_QUESTION)
-		#dlg.ShowModal()
 		self.Destroy()
 
 

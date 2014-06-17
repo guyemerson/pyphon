@@ -29,8 +29,11 @@ class MainWindowPanel(wx.Panel):
 		
 		# WIDGET CODE
 		
-		self.chooseLanguage = wx.ComboBox(self, size=(140,-1), choices=self.parent.trainLanguages, style=wx.CB_READONLY)
-		self.chooseContrast = wx.ComboBox(self, size=(95,-1), choices=["-"], style=wx.CB_READONLY)
+		self.defaultLangText = "<choose language>"
+		self.chooseLangChoices = [self.defaultLangText] + self.parent.trainLanguages
+		self.chooseLanguage = wx.ComboBox(self, size=(160,-1), choices=self.chooseLangChoices, style=wx.CB_READONLY)
+		self.chooseContrast = wx.ComboBox(self, size=(100,-1), choices=[], style=wx.CB_READONLY)
+		self.chooseLanguage.SetStringSelection(self.defaultLangText)
 		
 		self.train = wx.Button(self, label="Train!")
 		self.Bind(wx.EVT_BUTTON, self.OnTrain, self.train)
@@ -77,18 +80,25 @@ class MainWindowPanel(wx.Panel):
 		# Save the chosen language
 		print (event.GetString())
 		if self.parent.language != event.GetString():
+			if self.defaultLangText in self.chooseLanguage.GetItems():
+				self.chooseLanguage.SetItems(self.parent.trainLanguages)
 			self.parent.language = event.GetString()
 			self.train.Disable()
 			# Find all contrasts for the language
 			self.parent.trainContrasts = self.parent.allContrasts[self.parent.language]
 			print (self.parent.trainContrasts)
 			# Update the contrast dropdown menu
-			self.chooseContrast.SetItems(self.parent.trainContrasts)
+			self.defaultContrastText = "<contrast>"
+			self.chooseContrastChoices = [self.defaultContrastText] + self.parent.trainContrasts
+			self.chooseContrast.SetItems(self.chooseContrastChoices)
+			self.chooseContrast.SetStringSelection(self.defaultContrastText)
 		self.chooseContrast.Enable()
 
 	def OnContrast(self, event):
 		# Save the chosen contrast
 		print (event.GetString())
+		if event.GetString() != self.defaultContrastText and self.defaultContrastText in self.chooseContrast.GetItems():
+			self.chooseContrast.SetItems(self.parent.trainContrasts)
 		self.parent.contrast = event.GetString()
 		self.train.Enable()
 		

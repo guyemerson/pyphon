@@ -35,8 +35,13 @@ class AddPairsDialog(wx.Dialog):
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 		self.grid = wx.GridBagSizer(hgap=20, vgap=10)
 		
-		self.chooseLanguage = wx.ComboBox(self.panel, size=(140,-1), choices=parent.allLanguages, style=wx.CB_READONLY)
-		self.chooseContrast = wx.ComboBox(self.panel, size=(140,-1), choices=["-"], style=wx.CB_READONLY)
+		self.defaultLangText = "<choose language>"
+		self.chooseLangChoices = [self.defaultLangText] + self.allContrasts.keys()
+		self.chooseLanguage = wx.ComboBox(self.panel, size=(160,-1), choices=self.chooseLangChoices, style=wx.CB_READONLY)
+		self.chooseContrast = wx.ComboBox(self.panel, size=(160,-1), choices=[], style=wx.CB_READONLY)
+		self.chooseLanguage.SetStringSelection(self.defaultLangText)
+		self.chooseContrast.Disable()
+		
 		self.first = wx.TextCtrl(self.panel, value=u"", size=(60,-1))
 		self.second = wx.TextCtrl(self.panel, value=u"", size=(60,-1), style=wx.TE_PROCESS_ENTER)
 		self.addPair = wx.Button(self.panel, label=u"Add pair")
@@ -58,15 +63,28 @@ class AddPairsDialog(wx.Dialog):
 		
 		self.chooseLanguage.SetFocus()
 
+
 	def OnLanguage(self, event):
+		if self.language != event.GetString():
+			if self.defaultLangText in self.chooseLanguage.GetItems():
+				self.chooseLanguage.SetItems(self.allContrasts.keys())
+	
 		self.language = unicode(event.GetString())
-		self.chooseContrast.SetItems(self.allContrasts[self.language])
-		self.contrast = None
 		print(u"you chose {}".format(self.language))
+
+		self.defaultContrastText = "<contrast>"
+		self.chooseContrastChoices = [self.defaultContrastText] + self.allContrasts[self.language]
+		self.chooseContrast.SetItems(self.chooseContrastChoices)
+		self.chooseContrast.SetStringSelection(self.defaultContrastText)
+		self.chooseContrast.Enable()
+		
 	
 	def OnContrast(self, event):
+		if event.GetString() != self.defaultContrastText and self.defaultContrastText in self.chooseContrast.GetItems():
+			self.chooseContrast.SetItems(self.allContrasts[self.language])
 		self.contrast = unicode(event.GetString())
 		print(u"you chose {}".format(self.contrast))
+		
 	
 	def OnAddPair(self, event):
 		item1, item2 = unicode(self.first.Value).strip(), unicode(self.second.Value).strip()

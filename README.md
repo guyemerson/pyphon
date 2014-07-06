@@ -38,6 +38,6 @@ Constraint with two digits of precision.
 
 ## Licensing
 
-Except where otherwise noted, this work is licensed under the [GNU General Public License, version 3][http://www.gnu.org/copyleft/gpl.html].
+Except where otherwise noted, this work is licensed under the [GNU General Public License, version 3](http://www.gnu.org/copyleft/gpl.html).
 
 See also the [LICENSE](LICENSE.md) file.

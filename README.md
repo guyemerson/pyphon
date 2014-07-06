@@ -23,7 +23,7 @@ For information about installing PyPhon, see the
 
 To configure PyPhon, ...
 
-<!-- Considering adhering to Semantic Versioning:
+<!-- Consider adhering to Semantic Versioning:
 
 ## Versioning
 PyPhon adheres to Semantic Versioning 2.0.0. If there is a violation of

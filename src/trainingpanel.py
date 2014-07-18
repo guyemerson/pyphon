@@ -1,4 +1,5 @@
 import wx, random
+import os, os.path  # needed for picture of chicken
 import pyphon
 wx.USE_UNICODE = 1
 
@@ -45,13 +46,36 @@ class TrainingPanel(wx.Panel):
 		self.grid.Add(self.moo, pos=(0,0), span=(1,2))
 		self.grid.Add(self.quack, pos=(0,2), span=(1,2))
 		self.grid.Add(self.next, pos=(2,1), span=(1,2)) 
-		#self.grid.Add(self.stop, pos=(6,4), span=(1,2))
 
+		# Picture of chicken
+		src_dir = os.getcwd()
+		chickenDir = os.path.join(os.path.split(src_dir)[0], 'images/kura.png')
+		img = wx.Image(chickenDir, wx.BITMAP_TYPE_PNG)
+		
+		# make empty image
+		self.maxImageSize = 80
+		self.image = wx.StaticBitmap(self, bitmap=wx.EmptyBitmap(self.maxImageSize, self.maxImageSize))
+		
+		# re-size the image (should work for any image, not just this one)
+		w = img.GetWidth()
+		h = img.GetHeight()
+		if w > h:
+			newW = self.maxImageSize
+			newH = int(self.maxImageSize * float(h)/w)
+		else:
+			newH = self.maxImageSize
+			newW = int(self.maxImageSize * float(w)/h)
+		img = img.Scale(newW, newH)
+
+		self.image.SetBitmap(wx.BitmapFromImage(img))
+		self.grid.Add(self.image, pos=(3,0), span=(2,2))
+		
+		# subSizer contains stop button, with a 10 pixel border to the bottom and to the right.
 		self.subSizer.Add(self.stop, 1, wx.RIGHT | wx.BOTTOM | wx.ALIGN_BOTTOM, 10)
+		# mainSizer contains the grid and the subSizer underneath it. The grid has a 50 pixel border from the top.
 		self.mainSizer.Add(self.grid, 1, wx.TOP | wx.ALIGN_CENTRE, 50)
 		self.mainSizer.Add(self.subSizer, 1, wx.ALIGN_RIGHT, 0)
 		self.SetSizerAndFit(self.mainSizer)
-		#self.SetSizerAndFit(self.grid)
 		
 		self.CentreOnParent()
 		
@@ -63,11 +87,7 @@ class TrainingPanel(wx.Panel):
 		self.pendingAnswer = False 
 		# This variable is needed to stop the user from keeping on getting "correct answers" by pressing the same button many times.
 		
-				
-		# Need to have a way to handle what happens when TrainingWindow closes, i.e.:
-		# 1. statistics are stored
-		
-		
+			
 	# Below - BUTTONS!
 	# This is where the action happens
 	

@@ -5,7 +5,11 @@ wx.USE_UNICODE = 1
 
 class TrainingPanel(wx.Panel):
 	'''
-	This is the dialogue box where training happens.
+	This is the panel where training happens.
+	This is the second panel for the MainWindow. The first panel, MainWindowPanel, is coded in the wxGUI module.
+	The user sees four buttons - one for each word, and a "play again"/"next" button in the middle; and a "stop" button in the right bottom corner.
+	Pressing "stop" returns to the main panel; the other buttons are used for the training itself.
+	There is also now a picture in this panel.
 	'''
 	def __init__(self, parent, size):
 		wx.Panel.__init__(self, parent=parent, size=size)
@@ -25,10 +29,10 @@ class TrainingPanel(wx.Panel):
 		self.answer = None
 		self.options = [None, None]
 		
-		# Stats for the user's performance
-		#self.sessionStats = {True: 0, False: 0} # need to develop this	
-		
 		self.SetBackgroundColour('#ededed')
+		
+		# Sizers (for placing stuff in the panel)
+		# The subSizer and the grid fit in the mainSizer, which is the panel's overall sizer
 		self.mainSizer = wx.BoxSizer(wx.VERTICAL)
 		self.subSizer  = wx.BoxSizer(wx.HORIZONTAL)
 		self.grid = wx.GridBagSizer(hgap=20, vgap=5)
@@ -67,7 +71,9 @@ class TrainingPanel(wx.Panel):
 			newW = int(self.maxImageSize * float(w)/h)
 		img = img.Scale(newW, newH)
 
+		# put the 'img' picture in the empty 'image' object - this will show the 'img' picture
 		self.image.SetBitmap(wx.BitmapFromImage(img))
+		# add the image to the grid
 		self.grid.Add(self.image, pos=(3,0), span=(2,2))
 		
 		# subSizer contains stop button, with a 10 pixel border to the bottom and to the right.
@@ -79,6 +85,7 @@ class TrainingPanel(wx.Panel):
 		
 		self.CentreOnParent()
 		
+		# Both buttons are disabled at the start. They will be enabled when the user starts the training by pressing the "Next" button, initially labelled "Start".
 		self.moo.Disable()
 		self.quack.Disable()
 		
@@ -92,26 +99,32 @@ class TrainingPanel(wx.Panel):
 	# This is where the action happens
 	
 	def OnKeyDown(self, event):
+		'''
+		This is for keyboard shortcuts.
+		1 - moo (left button) 
+		2 - quack (right button)
+		'''
 		print ("you pressed a key and the TRAINING PANEL saw it")
-		key = event.GetKeyCode()
-		keyCharacter = chr(key)
+		key = event.GetKeyCode() # a code referring to the key you pressed
+		keyCharacter = chr(key)  # a string of the key you pressed
 		if keyCharacter == "1":
-			self.OnChoice(0)
+			self.OnChoice(0)    # "moo" (left word)
 		elif keyCharacter == "2":
-			self.OnChoice(1)
+			self.OnChoice(1)    # "quack" (right word)
 		elif key == wx.WXK_SPACE:
-			self.OnNext()
-	# A space event for Next would also be nice
+			self.OnNext()       # "Next"
 
 	
 	def OnChoice(self, choice):
 		"""
-		Button press depending on choice (index in self.options)
+		Button press (left or right word) depending on choice (index in self.options).
+		OnMoo and OnQuack methods redirect here.
 		"""
-		if self.pendingAnswer == False: return # stops people from being able to answer the same question multiple times with button presses
+		if self.pendingAnswer == False: 
+			return # stops people from being able to answer the same question multiple times with button presses
 		self.pendingAnswer = False
 		print(self.options[choice])
-		# Compare user's choice with the correct answer
+		# Compare user's choice with the correct answer, change stats accordingly
 		if self.options[choice] == self.answer:
 			self.parent.sessionStats[True] += 1
 		else:
@@ -119,9 +132,9 @@ class TrainingPanel(wx.Panel):
 		# Colour buttons backgrounds for feedback
 		for button in [self.moo, self.quack]:
 			if button.Label == self.answer:
-				button.SetBackgroundColour((0,255,0))
+				button.SetBackgroundColour((0,255,0)) # green
 			else:
-				button.SetBackgroundColour((255,0,0))
+				button.SetBackgroundColour((255,0,0)) # red
 		print(self.options[choice] == self.answer)
 		print(self.parent.sessionStats)
 		# Change the buttons
@@ -138,9 +151,16 @@ class TrainingPanel(wx.Panel):
 		
 		
 	def OnNext(self, event):
+		'''
+		When you press the "Next" button:
+		- a new minimal pair is chosen randomly
+		- the buttons are relabelled with the new words
+		- the buttons' background colour is reset to neutral (grey)
+		- the sound is played
+		'''
 		# allow the user to answer
 		if self.pendingAnswer == False:
-			self.pendingAnswer = True
+			self.pendingAnswer = True # this variable stops people from being able to answer the same question many times (by pressing a key)
 			
 			# reset the background colour of the buttons
 			self.moo.SetBackgroundColour(wx.NullColour)
@@ -159,8 +179,6 @@ class TrainingPanel(wx.Panel):
 			# Relabel the buttons
 			self.moo.Label = self.options[0]
 			self.quack.Label = self.options[1]
-			#self.moo.Show()
-			#self.quack.Show()
 			self.moo.Enable()
 			self.quack.Enable()
 			self.next.Label = "Play again"
@@ -170,6 +188,11 @@ class TrainingPanel(wx.Panel):
 	
 		
 	def OnStop(self, event):
+		'''When the "Stop" button is pressed:
+		- Reset the trainingpanel to have the same settings as at the beginning (ready for next session)
+		- Switch back to MainWindowPanel
+		'''
+		# Resetting the look
 		self.moo.Disable()
 		self.quack.Disable()
 		self.moo.Label = "..."
@@ -178,10 +201,13 @@ class TrainingPanel(wx.Panel):
 		self.moo.SetBackgroundColour(wx.NullColour)
 		self.quack.SetBackgroundColour(wx.NullColour)
 		
+		# Resetting the data
 		self.file = None
 		self.answer = None
 		self.options = None
 		self.pendingAnswer = False
+		
+		# Switch to MainWindowPanel
 		self.parent.switchMain()
 		
 	
